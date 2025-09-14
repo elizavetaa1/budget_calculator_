@@ -4,42 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=3.0">
-    <title>Бюджетный калькулятор</title>
+    <title>Калькулятор Бюджета</title>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#4caf50">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Бюджет">
-    <meta name="description" content="Удобный калькулятор для управления личным бюджетом и отслеживания трат">
+    <meta name="description" content="Персональный калькулятор для управления личным бюджетом и отслеживания трат">
     
-    <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
-    
-    <!-- Manifest -->
-    <link rel="manifest" href="data:application/manifest+json,{
-        &quot;name&quot;: &quot;Бюджетный калькулятор&quot;,
-        &quot;short_name&quot;: &quot;Бюджет&quot;,
-        &quot;start_url&quot;: &quot;/&quot;,
-        &quot;display&quot;: &quot;standalone&quot;,
-        &quot;background_color&quot;: &quot;#667eea&quot;,
-        &quot;theme_color&quot;: &quot;#4caf50&quot;,
-        &quot;orientation&quot;: &quot;portrait-primary&quot;,
-        &quot;categories&quot;: [&quot;finance&quot;, &quot;productivity&quot;],
-        &quot;icons&quot;: [
-            {
-                &quot;src&quot;: &quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%234caf50' rx='20'/><text x='96' y='120' font-size='100' text-anchor='middle' fill='white'>💰</text></svg>&quot;,
-                &quot;sizes&quot;: &quot;192x192&quot;,
-                &quot;type&quot;: &quot;image/svg+xml&quot;
-            },
-            {
-                &quot;src&quot;: &quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%234caf50' rx='50'/><text x='256' y='320' font-size='280' text-anchor='middle' fill='white'>💰</text></svg>&quot;,
-                &quot;sizes&quot;: &quot;512x512&quot;,
-                &quot;type&quot;: &quot;image/svg+xml&quot;
-            }
-        ]
-    }">
+    <!-- Manifest и иконки -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
@@ -122,6 +102,34 @@
         .connection-status.offline {
             background: #ffe8e8;
             color: #d32f2f;
+        }
+
+        .sync-status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .sync-status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .sync-status.success {
+            background: #e8f5e8;
+            color: #2e7d2e;
+        }
+
+        .sync-status.error {
+            background: #ffe8e8;
+            color: #d32f2f;
+        }
+
+        .sync-status.warning {
+            background: #fff3cd;
+            color: #856404;
         }
 
         .tabs {
@@ -821,6 +829,7 @@
                         <option value="USD">$ Доллар</option>
                         <option value="EUR">€ Евро</option>
                         <option value="OMR">OMR Риалы</option>
+                        <option value="AED">AED Дирхамы</option>
                     </select>
                 </div>
                 <div>
@@ -840,6 +849,7 @@
                             <option value="USD">$ Доллар</option>
                             <option value="EUR">€ Евро</option>
                             <option value="OMR">OMR Риалы</option>
+                            <option value="AED">AED Дирхамы</option>
                         </select>
                     </div>
                     <div>
@@ -848,6 +858,7 @@
                             <option value="RUB">₽ Рубль</option>
                             <option value="EUR">€ Евро</option>
                             <option value="OMR">OMR Риалы</option>
+                            <option value="AED">AED Дирхамы</option>
                         </select>
                     </div>
                     <div>
@@ -889,6 +900,7 @@
                             <option value="USD">$ Доллар</option>
                             <option value="EUR">€ Евро</option>
                             <option value="OMR">OMR Риалы</option>
+                            <option value="AED">AED Дирхамы</option>
                         </select>
                     </div>
                 </div>
@@ -928,6 +940,7 @@
                         <option value="USD">$ Доллар</option>
                         <option value="EUR">€ Евро</option>
                         <option value="OMR">OMR Риалы</option>
+                        <option value="AED">AED Дирхамы</option>
                     </select>
                 </div>
             </div>
@@ -985,6 +998,7 @@
                             <option value="USD">$ Доллар</option>
                             <option value="EUR">€ Евро</option>
                             <option value="OMR">OMR Риалы</option>
+                            <option value="AED">AED Дирхамы</option>
                         </select>
                     </div>
                 </div>
@@ -1024,6 +1038,7 @@
                         <option value="USD">$ Доллар</option>
                         <option value="EUR">€ Евро</option>
                         <option value="OMR">OMR Риалы</option>
+                        <option value="AED">AED Дирхамы</option>
                     </select>
                 </div>
             </div>
@@ -1124,6 +1139,7 @@
                         <option value="USD">$ Доллар</option>
                         <option value="EUR">€ Евро</option>
                         <option value="OMR">OMR Риалы</option>
+                        <option value="AED">AED Дирхамы</option>
                     </select>
                 </div>
             </div>
@@ -1143,67 +1159,55 @@
     <script>
         // Service Worker Registration
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swScript = `
-                    const CACHE_NAME = 'budget-calculator-v1';
-                    const urlsToCache = [
-                        '/',
-                        'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js'
-                    ];
-
-                    self.addEventListener('install', (event) => {
-                        event.waitUntil(
-                            caches.open(CACHE_NAME)
-                                .then((cache) => {
-                                    return cache.addAll(urlsToCache);
-                                })
-                        );
-                        self.skipWaiting();
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('sw.js', {
+                        scope: '/'
                     });
-
-                    self.addEventListener('fetch', (event) => {
-                        event.respondWith(
-                            caches.match(event.request)
-                                .then((response) => {
-                                    if (response) {
-                                        return response;
-                                    }
-                                    return fetch(event.request).catch(() => {
-                                        if (event.request.mode === 'navigate') {
-                                            return caches.match('/');
-                                        }
-                                    });
-                                })
-                        );
+                    
+                    console.log('ServiceWorker registered:', registration.scope);
+                    
+                    // Обновление SW
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateNotification();
+                            }
+                        });
                     });
-
-                    self.addEventListener('activate', (event) => {
-                        event.waitUntil(
-                            caches.keys().then((cacheNames) => {
-                                return Promise.all(
-                                    cacheNames.map((cacheName) => {
-                                        if (cacheName !== CACHE_NAME) {
-                                            return caches.delete(cacheName);
-                                        }
-                                    })
-                                );
-                            })
-                        );
-                        self.clients.claim();
-                    });
-                `;
-
-                const blob = new Blob([swScript], { type: 'application/javascript' });
-                const swUrl = URL.createObjectURL(blob);
-
-                navigator.serviceWorker.register(swUrl)
-                    .then((registration) => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch((registrationError) => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
+                    
+                } catch (error) {
+                    console.log('ServiceWorker registration failed:', error);
+                }
             });
+        }
+
+        // Уведомление об обновлении
+        function showUpdateNotification() {
+            const updateBanner = document.createElement('div');
+            updateBanner.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: #2196f3;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                z-index: 9999;
+                font-family: Arial, sans-serif;
+            `;
+            updateBanner.innerHTML = `
+                Доступно обновление приложения
+                <button onclick="window.location.reload()" style="margin-left: 10px; padding: 5px 10px; background: white; color: #2196f3; border: none; border-radius: 3px; cursor: pointer;">
+                    Обновить
+                </button>
+                <button onclick="this.parentElement.remove()" style="margin-left: 5px; padding: 5px 10px; background: transparent; color: white; border: 1px solid white; border-radius: 3px; cursor: pointer;">
+                    Позже
+                </button>
+            `;
+            document.body.prepend(updateBanner);
         }
 
         // PWA Install Logic
@@ -1216,8 +1220,12 @@
             e.preventDefault();
             deferredPrompt = e;
             
-            if (!localStorage.getItem('pwa-dismissed')) {
-                installBanner.style.display = 'block';
+            if (!localStorage.getItem('pwa-dismissed') && !window.matchMedia('(display-mode: standalone)').matches) {
+                setTimeout(() => {
+                    if (installBanner) {
+                        installBanner.style.display = 'block';
+                    }
+                }, 3000);
             }
         });
 
@@ -1234,6 +1242,15 @@
         dismissButton.addEventListener('click', () => {
             installBanner.style.display = 'none';
             localStorage.setItem('pwa-dismissed', 'true');
+        });
+
+        // Проверка установки PWA
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA установлено');
+            localStorage.setItem('pwa-installed', 'true');
+            if (installBanner) {
+                installBanner.style.display = 'none';
+            }
         });
 
         // Connection Status
@@ -1272,7 +1289,22 @@
             }
         }
 
-        // Original BudgetCalculator class with offline enhancements
+        // Обработка быстрых действий
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action');
+
+        if (action === 'add-expense') {
+            setTimeout(() => {
+                switchTab('main');
+                document.getElementById('expenseAmount').focus();
+            }, 500);
+        } else if (action === 'analytics') {
+            setTimeout(() => {
+                switchTab('analytics');
+            }, 500);
+        }
+
+        // Original BudgetCalculator class with fixed AED currency
         class BudgetCalculator {
             constructor() {
                 this.currentTab = 'main';
@@ -1284,12 +1316,14 @@
                     'USD': 0.011,
                     'EUR': 0.010,
                     'OMR': 0.004,
+                    'AED': 0.040,
                 };
                 this.currencySymbols = {
                     'RUB': '₽',
                     'USD': '$',
                     'EUR': '€',
                     'OMR': 'OMR',
+                    'AED': 'AED'  // Исправлено: добавлен символ для AED
                 };
                 this.defaultCategories = {
                     main: [
@@ -1328,6 +1362,13 @@
                 this.updateAllDisplays();
                 this.setDefaultDates();
                 this.populateCategories();
+                this.requestNotificationPermission();
+            }
+
+            requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
             }
 
             startAutoBackup() {
@@ -1372,6 +1413,7 @@
                             'RUB': data.rates.RUB || 90,
                             'EUR': data.rates.EUR || 0.85,
                             'OMR': data.rates.OMR || 0.385,
+                            'AED': data.rates.AED || 3.67,
                         };
                         
                         localStorage.setItem('exchangeRates', JSON.stringify(this.exchangeRates));
@@ -1648,10 +1690,27 @@
                 this.data[mode].expenses.push(expense);
                 this.saveData(mode);
                 this.updateDisplay(mode);
+                this.checkBudgetLimits(mode);
                 this.showAlert('Трата добавлена!', 'success');
 
                 document.getElementById(`expenseAmount${mode === 'vacation' ? 'Vacation' : ''}`).value = '';
                 document.getElementById(`expenseDescription${mode === 'vacation' ? 'Vacation' : ''}`).value = '';
+            }
+
+            checkBudgetLimits(mode) {
+                const data = this.data[mode];
+                const totalSpent = data.expenses.reduce((sum, expense) => {
+                    return sum + this.convertAmount(expense.amount, expense.currency, data.budget.currency);
+                }, 0);
+                
+                const percentage = (totalSpent / data.budget.total) * 100;
+                
+                if (percentage >= 90 && 'Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Бюджет почти исчерпан!', {
+                        body: `Потрачено ${percentage.toFixed(1)}% от бюджета`,
+                        icon: 'icons/icon-192x192.png'
+                    });
+                }
             }
 
             editExpense(mode, expenseId) {
@@ -2359,6 +2418,33 @@
                 closeEditModal();
             }
         }
+
+        // Обработка сообщений от Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'SYNC_REQUEST') {
+                    // Принудительная синхронизация данных
+                    calculator.autoBackup();
+                    console.log('Background sync completed');
+                }
+            });
+        }
+
+        // Регистрация фоновой синхронизации
+        function registerBackgroundSync() {
+            if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                navigator.serviceWorker.ready.then((registration) => {
+                    return registration.sync.register('budget-sync');
+                }).catch((error) => {
+                    console.log('Background sync registration failed:', error);
+                });
+            }
+        }
+
+        // Запускаем фоновую синхронизацию при изменении данных
+        window.addEventListener('beforeunload', () => {
+            registerBackgroundSync();
+        });
     </script>
 </body>
 
