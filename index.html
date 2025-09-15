@@ -22,6 +22,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -873,6 +874,7 @@
                 <button class="secondary" onclick="createBackup()">💾 Создать резервную копию</button>
                 <button class="warning" onclick="restoreBackup()">📥 Восстановить из копии</button>
                 <button class="secondary" onclick="exportToDoc()">📄 Экспорт в DOC</button>
+                <button class="secondary" onclick="calculator.exportToExcel()">📊 Экспорт в Excel</button>
             </div>
 
             <h2>PWA Settings</h2>
@@ -1941,6 +1943,37 @@
 
                 this.showAlert('Данные экспортированы!', 'success');
             }
+            exportToExcel() {
+    const modes = ['main', 'vacation'];
+    const wb = XLSX.utils.book_new(); // создаём новую книгу Excel
+
+    modes.forEach(mode => {
+        const data = this.data[mode];
+
+        // шапка таблицы
+        const sheetData = [
+            ["Дата", "Категория", "Описание", "Сумма", "Валюта"]
+        ];
+
+        // добавляем строки
+        data.expenses.forEach(exp => {
+            sheetData.push([
+                exp.date,
+                exp.category,
+                exp.description || "",
+                exp.amount,
+                exp.currency
+            ]);
+        });
+
+        // создаём лист
+        const ws = XLSX.utils.aoa_to_sheet(sheetData);
+        XLSX.utils.book_append_sheet(wb, ws, mode === "main" ? "Основной" : "Отпуск");
+    });
+
+    // сохраняем файл
+    XLSX.writeFile(wb, `budget-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+}
 
             exportToDoc() {
                 const modes = ['main', 'vacation'];
