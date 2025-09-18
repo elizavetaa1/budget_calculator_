@@ -47,6 +47,58 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
+        /* Стили авторизации */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .auth-container h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4caf50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
         h1 {
             text-align: center;
             color: #333;
@@ -218,6 +270,13 @@
 
         button:active {
             transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         button.danger {
@@ -562,7 +621,7 @@
                 padding: 5px;
             }
             
-            .container {
+            .container, .auth-container {
                 padding: 10px;
                 border-radius: 8px;
             }
@@ -698,7 +757,7 @@
                 background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             }
 
-            .container {
+            .container, .auth-container {
                 background: #2c3e50;
                 color: #ecf0f1;
             }
@@ -754,6 +813,8 @@
             input[type="text"],
             input[type="number"],
             input[type="date"],
+            input[type="email"],
+            input[type="password"],
             select {
                 font-size: 16px;
             }
@@ -770,8 +831,34 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>💰Калькулятор Бюджета</h1>
+    <!-- Экран авторизации -->
+    <div id="authContainer" class="auth-container">
+        <h1> 🏦 Калькулятор Бюджета</h1>
+        
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner"></div>
+            <p>Загрузка...</p>
+        </div>
+
+        <div id="authForm" class="auth-form">
+            <input type="email" id="emailInput" placeholder="Email" required>
+            <input type="password" id="passwordInput" placeholder="Пароль" required>
+            <button onclick="signIn()">Войти</button>
+        </div>
+
+        <div class="connection-status" id="authConnectionStatus">
+            Проверка подключения...
+        </div>
+    </div>
+
+    <!-- Основное приложение -->
+    <div class="container" id="mainApp" style="display: none;">
+        <div class="user-info">
+            <span>Пользователь: <strong id="userEmail"></strong></span>
+            <button class="danger small" onclick="signOut()">Выйти</button>
+        </div>
+
+        <h1>🏦 Калькулятор Бюджета</h1>
         
         <!-- PWA Install Banner -->
         <div class="pwa-install-banner" id="installBanner">
@@ -797,7 +884,7 @@
         
         <div class="tabs">
             <button class="tab active" onclick="switchTab('main')">📊 Основной</button>
-            <button class="tab" onclick="switchTab('vacation')">🏖️ Отпуск</button>
+            <button class="tab" onclick="switchTab('vacation')">🖏️ Отпуск</button>
             <button class="tab" onclick="switchTab('analytics')">📈 Аналитика</button>
             <button class="tab" onclick="switchTab('settings')">⚙️ Настройки</button>
         </div>
@@ -874,7 +961,7 @@
                 <button class="secondary" onclick="createBackup()">💾 Создать резервную копию</button>
                 <button class="warning" onclick="restoreBackup()">📥 Восстановить из копии</button>
                 <button class="secondary" onclick="exportToDoc()">📄 Экспорт в DOC</button>
-                <button class="secondary" onclick="calculator.exportToExcel()">📊 Экспорт в Excel</button>
+                <button class="secondary" onclick="window.calculator.exportToExcel()">📊 Экспорт в Excel</button>
             </div>
 
             <h2>PWA Settings</h2>
@@ -1158,7 +1245,125 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfy-b30TQAXD9JeylJZZUe15IGE2j_3pY",
+            authDomain: "budget-calculator-f2c1d.firebaseapp.com",
+            projectId: "budget-calculator-f2c1d",
+            storageBucket: "budget-calculator-f2c1d.firebasestorage.app",
+            messagingSenderId: "822984437393",
+            appId: "1:822984437393:web:0987c3d9f9db8baba41930",
+            measurementId: "G-GRBJGXGNM4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Global variables for Firebase
+        window.auth = auth;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.firebaseSignOut = firebaseSignOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+
+        // Check auth state and initialize app
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                showMainApp(user);
+            } else {
+                showAuthScreen();
+            }
+        });
+
+        function showAuthScreen() {
+            document.getElementById('authContainer').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('authForm').style.display = 'block';
+            updateAuthConnectionStatus();
+        }
+
+        function showMainApp(user) {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('userEmail').textContent = user.email;
+            
+            // Initialize calculator
+            if (!window.calculator) {
+                window.calculator = new BudgetCalculator();
+            }
+            // Set global reference for functions
+            window.calculator = window.calculator;
+        }
+
+        function updateAuthConnectionStatus() {
+            const statusEl = document.getElementById('authConnectionStatus');
+            if (navigator.onLine) {
+                statusEl.className = 'connection-status online';
+                statusEl.textContent = '🌐 Подключение активно';
+            } else {
+                statusEl.className = 'connection-status offline';
+                statusEl.textContent = '📱 Работа офлайн';
+            }
+        }
+
+        window.addEventListener('online', updateAuthConnectionStatus);
+        window.addEventListener('offline', updateAuthConnectionStatus);
+    </script>
+
     <script>
+        // Auth functions
+        async function signIn() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            
+            if (!email || !password) {
+                showAlert('Введите email и пароль', 'danger');
+                return;
+            }
+
+            try {
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('authForm').style.display = 'none';
+                
+                await signInWithEmailAndPassword(auth, email, password);
+                showAlert('Вход выполнен успешно!', 'success');
+            } catch (error) {
+                console.error('Ошибка входа:', error);
+                showAlert(getErrorMessage(error.code), 'danger');
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('authForm').style.display = 'block';
+            }
+        }
+
+        async function signOut() {
+            try {
+                await firebaseSignOut(auth);
+                showAlert('Выход выполнен', 'info');
+                // Clear calculator instance
+                window.calculator = null;
+            } catch (error) {
+                console.error('Ошибка выхода:', error);
+                showAlert('Ошибка при выходе', 'danger');
+            }
+        }
+
+        function getErrorMessage(errorCode) {
+            const messages = {
+                'auth/user-not-found': 'Пользователь не найден',
+                'auth/wrong-password': 'Неверный пароль',
+                'auth/invalid-email': 'Неверный формат email',
+                'auth/network-request-failed': 'Ошибка сети. Проверьте подключение к интернету'
+            };
+            return messages[errorCode] || 'Произошла ошибка. Попробуйте снова.';
+        }
+
         // Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
@@ -1332,8 +1537,8 @@
                         { name: 'Доставка', icon: '🍕' },
                         { name: 'Машина', icon: '🚗' },
                         { name: 'Развлечения', icon: '🎬' },
-                        { name: 'Вещи', icon: '🛍️' },
-                        { name: 'Здоровье', icon: '🏥' },
+                        { name: 'Вещи', icon: '🛏️' },
+                        { name: 'Здоровье', icon: '🥺' },
                         { name: 'Учеба', icon: '📚' },
                         { name: 'Коммунальные', icon: '💡' },
                         { name: 'Продукты', icon: '🛒' },
@@ -1346,7 +1551,7 @@
                         { name: 'Развлечения', icon: '🎭' },
                         { name: 'Экскурсии', icon: '🗺️' },
                         { name: 'Сувениры', icon: '🎁' },
-                        { name: 'Вещи', icon: '🛍️' },
+                        { name: 'Вещи', icon: '🛏️' },
                         { name: 'Медицина', icon: '💊' },
                         { name: 'Другое', icon: '📦' }
                     ]
@@ -1436,7 +1641,7 @@
                             '⚠️ Используются сохранённые курсы';
                     } else {
                         document.getElementById('exchangeRateStatus').textContent = 
-                            '❌ Ошибка загрузки курсов. Используются базовые значения.';
+                            '⌘ Ошибка загрузки курсов. Используются базовые значения.';
                     }
                 }
             }
@@ -1544,7 +1749,7 @@
                         html += `
                             <div class="category-item">
                                 <span>${cat.icon} ${cat.name}</span>
-                                <button class="danger small" onclick="calculator.deleteCustomCategory('${mode}', '${cat.name}')">
+                                <button class="danger small" onclick="window.calculator.deleteCustomCategory('${mode}', '${cat.name}')">
                                     Удалить
                                 </button>
                             </div>
@@ -1874,10 +2079,10 @@
                             <div class="expense-date">${this.formatDate(expense.date)}</div>
                         </div>
                         <div class="expense-actions">
-                            <button class="warning small" onclick="calculator.editExpense('${mode}', '${expense.id}')">
+                            <button class="warning small" onclick="window.calculator.editExpense('${mode}', '${expense.id}')">
                                 Изменить
                             </button>
-                            <button class="danger small" onclick="calculator.deleteExpense('${mode}', '${expense.id}')">
+                            <button class="danger small" onclick="window.calculator.deleteExpense('${mode}', '${expense.id}')">
                                 Удалить
                             </button>
                         </div>
@@ -2345,8 +2550,6 @@
         }
 
         // Global functions for HTML events
-        const calculator = new BudgetCalculator();
-
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -2356,12 +2559,14 @@
             const tabIndex = { main: 0, vacation: 1, analytics: 2, settings: 3 }[tab];
             tabButtons[tabIndex].classList.add('active');
             
-            calculator.currentTab = tab;
-            
-            if (tab === 'analytics') {
-                calculator.updateAnalytics();
-            } else if (tab === 'settings') {
-                calculator.updateCategoriesList();
+            if (window.calculator) {
+                window.calculator.currentTab = tab;
+                
+                if (tab === 'analytics') {
+                    window.calculator.updateAnalytics();
+                } else if (tab === 'settings') {
+                    window.calculator.updateCategoriesList();
+                }
             }
         }
 
@@ -2379,71 +2584,71 @@
         }
 
         function setBudget(mode) {
-            calculator.setBudget(mode);
+            if (window.calculator) window.calculator.setBudget(mode);
         }
 
         function addExpense(mode) {
-            calculator.addExpense(mode);
+            if (window.calculator) window.calculator.addExpense(mode);
         }
 
         function filterExpenses(mode) {
-            calculator.filterExpenses(mode);
+            if (window.calculator) window.calculator.filterExpenses(mode);
         }
 
         function clearFilters(mode) {
-            calculator.clearFilters(mode);
+            if (window.calculator) window.calculator.clearFilters(mode);
         }
 
         function exportData(mode) {
-            calculator.exportData(mode);
+            if (window.calculator) window.calculator.exportData(mode);
         }
 
         function importData(mode) {
-            calculator.importData(mode);
+            if (window.calculator) window.calculator.importData(mode);
         }
 
         function clearAllData(mode) {
-            calculator.clearAllData(mode);
+            if (window.calculator) window.calculator.clearAllData(mode);
         }
 
         function updateAnalytics() {
-            calculator.updateAnalytics();
+            if (window.calculator) window.calculator.updateAnalytics();
         }
 
         function closeEditModal() {
-            calculator.closeEditModal();
+            if (window.calculator) window.calculator.closeEditModal();
         }
 
         function saveExpenseEdit() {
-            calculator.saveExpenseEdit();
+            if (window.calculator) window.calculator.saveExpenseEdit();
         }
 
         function addCustomCategory() {
-            calculator.addCustomCategory();
+            if (window.calculator) window.calculator.addCustomCategory();
         }
 
         function setBaseCurrency() {
-            calculator.setBaseCurrency();
+            if (window.calculator) window.calculator.setBaseCurrency();
         }
 
         function convertCurrency() {
-            calculator.convertCurrency();
+            if (window.calculator) window.calculator.convertCurrency();
         }
 
         function createBackup() {
-            calculator.createBackup();
+            if (window.calculator) window.calculator.createBackup();
         }
 
         function restoreBackup() {
-            calculator.restoreBackup();
+            if (window.calculator) window.calculator.restoreBackup();
         }
 
         function exportToDoc() {
-            calculator.exportToDoc();
+            if (window.calculator) window.calculator.exportToDoc();
         }
 
         function updateExchangeRates() {
-            calculator.updateExchangeRates();
+            if (window.calculator) window.calculator.updateExchangeRates();
         }
 
         // Close modal when clicking outside
@@ -2454,12 +2659,36 @@
             }
         }
 
+        // Handle Enter key for auth forms
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const authContainer = document.getElementById('authContainer');
+                if (authContainer.style.display !== 'none') {
+                    signIn();
+                }
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${type}`;
+            alertDiv.textContent = message;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 3000);
+        }
+
         // Обработка сообщений от Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', (event) => {
                 if (event.data && event.data.type === 'SYNC_REQUEST') {
                     // Принудительная синхронизация данных
-                    calculator.autoBackup();
+                    if (calculator) calculator.autoBackup();
                     console.log('Background sync completed');
                 }
             });
