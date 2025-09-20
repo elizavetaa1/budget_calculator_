@@ -1627,53 +1627,34 @@
         }
 
         // Улучшенная регистрация Service Worker
+// Упрощенная регистрация Service Worker
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-        try {
-            // Регистрируем Service Worker с правильной областью видимости
-            const registration = await navigator.serviceWorker.register('./sw.js', {
-    scope: './budget_calculator_/'
-});
-            
-            console.log('ServiceWorker registered successfully:', registration.scope);
-            
-            // Обработка обновлений SW
-            registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                console.log('New ServiceWorker installing...');
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then((registration) => {
+                console.log('SW registered:', registration.scope);
                 
-                newWorker.addEventListener('statechange', () => {
-                    console.log('ServiceWorker state changed to:', newWorker.state);
-                    
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        showUpdateNotification();
-                    }
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed') {
+                            console.log('SW updated');
+                            if (navigator.serviceWorker.controller) {
+                                window.location.reload();
+                            }
+                        }
+                    });
                 });
+            })
+            .catch((error) => {
+                console.log('SW registration failed:', error);
             });
-
-            // Обработка активации нового SW
-            let refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!refreshing) {
-                    window.location.reload();
-                    refreshing = true;
-                }
-            });
-
-            // Слушаем сообщения от Service Worker
-            navigator.serviceWorker.addEventListener('message', handleSWMessage);
-            
-        } catch (error) {
-            console.log('ServiceWorker registration failed:', error);
-            
+    });
+}
             // Уведомляем пользователя о проблемах с кешированием
             setTimeout(() => {
                 showAlert('Приложение работает в ограниченном режиме. Некоторые функции могут быть недоступны оффлайн.', 'warning');
             }, 3000);
-        }
-    });
-}
-
 // Обработчик сообщений от Service Worker
 function handleSWMessage(event) {
     console.log('Received message from SW:', event.data);
@@ -2009,47 +1990,36 @@ window.addEventListener('beforeunload', () => {
 
             // Инициализация системы синхронизации
             initializeSync() {
-                // Мониторинг состояния сети
-                window.addEventListener('online', () => {
-                    this.isOnline = true;
-                    this.updateConnectionStatus();
-                    this.startSync();
-                });
+    // Отключаем сложную синхронизацию Service Worker
+    this.useServiceWorkerSync = false;
+    
+    // Простая обработка сетевых событий
+    window.addEventListener('online', () => {
+        this.isOnline = true;
+        this.updateConnectionStatus();
+        if (this.userId && this.pendingChanges) {
+            setTimeout(() => {
+                this.uploadToCloud().catch(console.error);
+            }, 1000);
+        }
+    });
 
-                window.addEventListener('offline', () => {
-                    this.isOnline = false;
-                    this.updateConnectionStatus();
-                    this.stopSync();
-                });
+    window.addEventListener('offline', () => {
+        this.isOnline = false;
+        this.updateConnectionStatus();
+    });
 
-                // Автоматическая синхронизация каждые 10 секунд
-                this.syncInterval = setInterval(() => {
-                    if (this.isOnline && this.userId) {
-                        this.performSync();
-                    }
-                }, 10000);
+    // Простая периодическая синхронизация
+    if (this.syncInterval) clearInterval(this.syncInterval);
+    
+    this.syncInterval = setInterval(() => {
+        if (this.isOnline && this.userId && this.pendingChanges) {
+            this.uploadToCloud().catch(console.error);
+        }
+    }, 30000); // каждые 30 секунд
 
-                // Синхронизация при изменении фокуса окна
-                window.addEventListener('focus', () => {
-                    if (this.isOnline && this.userId) {
-                        this.performSync();
-                    }
-                });
-
-                // Синхронизация перед закрытием страницы
-                window.addEventListener('beforeunload', () => {
-                    if (this.pendingChanges && this.isOnline && this.userId) {
-                        // Синхронная отправка для критических данных
-                        navigator.sendBeacon('/api/sync', JSON.stringify({
-                            userId: this.userId,
-                            data: this.getDataForSync()
-                        }));
-                    }
-                });
-
-                this.updateConnectionStatus();
-            }
-
+    this.updateConnectionStatus();
+}
             // Установка пользователя и запуск синхронизации
             setUser(user) {
                 this.userId = user.uid;
