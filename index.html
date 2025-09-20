@@ -14,11 +14,13 @@
     <meta name="description" content="Персональный калькулятор для управления личным бюджетом и отслеживания трат">
     
     <!-- Manifest и иконки -->
-<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
-<link rel="apple-touch-icon" href="icons/icon-192x192.png">
-<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -182,97 +184,6 @@
         .sync-status.warning {
             background: #fff3cd;
             color: #856404;
-        }
-
-        .sync-status.syncing {
-            background: #e3f2fd;
-            color: #1976d2;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        .sync-status-container {
-            margin: 15px 0;
-        }
-
-        .sync-info {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            font-size: 12px;
-        }
-
-        .sync-info-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 3px 0;
-        }
-
-        .sync-label {
-            color: #666;
-            font-weight: 500;
-        }
-
-        .sync-value {
-            color: #333;
-            font-family: monospace;
-        }
-
-        .sync-controls {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-        }
-
-        .sync-details {
-            background: #ffffff;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-        }
-
-        .sync-detail-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .sync-detail-item:last-child {
-            border-bottom: none;
-        }
-
-        .sync-settings {
-            background: #ffffff;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-        }
-
-        .sync-settings label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .sync-settings input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
-
-        .sync-settings input[type="number"] {
-            width: 80px;
         }
 
         .backup-status, .exchange-rate-status {
@@ -705,36 +616,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Courier New', monospace;
         }
 
-        .sync-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: blink 1s infinite;
-        }
-
-        .sync-indicator.connected {
-            background: #4caf50;
-        }
-
-        .sync-indicator.syncing {
-            background: #2196f3;
-        }
-
-        .sync-indicator.error {
-            background: #f44336;
-        }
-
-        .sync-indicator.offline {
-            background: #ff9800;
-        }
-
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
-
         /* Мобильные устройства */
         @media (max-width: 480px) {
             body {
@@ -795,20 +676,6 @@
                 left: 10px;
                 top: 10px;
                 max-width: none;
-            }
-
-            .sync-info-item,
-            .sync-detail-item {
-                flex-direction: column;
-                text-align: left;
-            }
-            
-            .sync-label {
-                margin-bottom: 2px;
-            }
-            
-            .sync-controls .input-group {
-                grid-template-columns: 1fr;
             }
         }
 
@@ -1003,43 +870,22 @@
             </div>
         </div>
 
-        <!-- Улучшенные статусы синхронизации -->
-        <div class="sync-status-container">
-            <!-- Connection Status -->
-            <div class="connection-status online" id="connectionStatus">
-                🌐 Подключение активно
-            </div>
-            
-            <!-- Enhanced Sync Status -->
-            <div class="sync-status success" id="backupStatus">
-                ✅ Автосохранение активно
-            </div>
-            
-            <!-- Device and Sync Info -->
-            <div class="sync-info" id="syncInfo">
-                <div class="sync-info-item">
-                    <span class="sync-label">Устройство:</span>
-                    <span class="sync-value" id="deviceInfo">-</span>
-                </div>
-                <div class="sync-info-item">
-                    <span class="sync-label">Последняя синхронизация:</span>
-                    <span class="sync-value" id="lastSyncTime">-</span>
-                </div>
-                <div class="sync-info-item">
-                    <span class="sync-label">Ожидающие изменения:</span>
-                    <span class="sync-value" id="pendingChanges">Нет</span>
-                </div>
-            </div>
+        <!-- Connection Status -->
+        <div class="connection-status online" id="connectionStatus">
+            🌐 Подключение активно
+        </div>
+        
+        <div class="sync-status" id="backupStatus">
+            ✅ Автосохранение активно
+        </div>
 
-            <!-- Exchange Rate Status -->
-            <div class="exchange-rate-status" id="exchangeRateStatus">
-                📄 Загрузка курсов валют...
-            </div>
+        <div class="exchange-rate-status" id="exchangeRateStatus">
+            🔄 Загрузка курсов валют...
         </div>
         
         <div class="tabs">
             <button class="tab active" onclick="switchTab('main')">📊 Основной</button>
-            <button class="tab" onclick="switchTab('vacation')">🏖️ Отпуск</button>
+            <button class="tab" onclick="switchTab('vacation')">🖏️ Отпуск</button>
             <button class="tab" onclick="switchTab('analytics')">📈 Аналитика</button>
             <button class="tab" onclick="switchTab('settings')">⚙️ Настройки</button>
         </div>
@@ -1109,74 +955,6 @@
                     </div>
                 </div>
                 <div id="conversionResult"></div>
-            </div>
-
-            <!-- Новая секция: Синхронизация -->
-            <h2>Синхронизация и данные</h2>
-            <div class="sync-controls">
-                <div class="input-group">
-                    <div>
-                        <button class="secondary" onclick="window.calculator.forceSync()">
-                            🔄 Принудительная синхронизация
-                        </button>
-                    </div>
-                    <div>
-                        <button class="secondary" onclick="showSyncStatus()">
-                            📊 Статус синхронизации
-                        </button>
-                    </div>
-                    <div>
-                        <button class="warning" onclick="resetSyncData()">
-                            🔄 Сброс синхронизации
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Детальная информация о синхронизации -->
-                <div class="sync-details" id="syncDetails">
-                    <h3>Информация о синхронизации</h3>
-                    <div class="sync-detail-item">
-                        <strong>ID пользователя:</strong> <span id="userIdDisplay">-</span>
-                    </div>
-                    <div class="sync-detail-item">
-                        <strong>ID устройства:</strong> <span id="deviceIdDisplay">-</span>
-                    </div>
-                    <div class="sync-detail-item">
-                        <strong>Статус:</strong> <span id="syncStatusDisplay">-</span>
-                    </div>
-                    <div class="sync-detail-item">
-                        <strong>Последнее обновление локально:</strong> <span id="localTimestampDisplay">-</span>
-                    </div>
-                    <div class="sync-detail-item">
-                        <strong>Последнее обновление в облаке:</strong> <span id="cloudTimestampDisplay">-</span>
-                    </div>
-                    <div class="sync-detail-item">
-                        <strong>Автосинхронизация:</strong> <span id="autoSyncStatus">Включена</span>
-                    </div>
-                </div>
-
-                <!-- Настройки синхронизации -->
-                <div class="sync-settings">
-                    <h3>Настройки синхронизации</h3>
-                    <div class="input-group">
-                        <div>
-                            <label>
-                                <input type="checkbox" id="autoSyncEnabled" checked onchange="toggleAutoSync()">
-                                Автоматическая синхронизация
-                            </label>
-                        </div>
-                        <div>
-                            <label>
-                                <input type="checkbox" id="realtimeSyncEnabled" checked onchange="toggleRealtimeSync()">
-                                Синхронизация в реальном времени
-                            </label>
-                        </div>
-                        <div>
-                            <label for="syncInterval">Интервал синхронизации (сек):</label>
-                            <input type="number" id="syncInterval" value="10" min="5" max="300" onchange="updateSyncInterval()">
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <h2>Резервное копирование</h2>
@@ -1502,33 +1280,9 @@
         window.firestoreGetDoc = getDoc;
         window.firestoreOnSnapshot = onSnapshot;
 
-        // Добавляем обработчик ошибок
-        window.addEventListener('unhandledrejection', (event) => {
-            if (event.reason && event.reason.code && event.reason.code.includes('auth/')) {
-                console.log('Firebase auth error handled:', event.reason.code);
-                event.preventDefault();
-            }
-        });
-
-        // Проверка подключения к Firebase
-        async function checkFirebaseConnection() {
-            try {
-                const testDoc = doc(db, 'test', 'connection');
-                await getDoc(testDoc);
-                return true;
-            } catch (error) {
-                console.error('Firebase недоступен:', error);
-                return false;
-            }
-        }
-
         // Check auth state and initialize app
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                const firebaseAvailable = await checkFirebaseConnection();
-                if (!firebaseAvailable) {
-                    showAlert('Проблемы с подключением к серверу. Работаем в автономном режиме.', 'warning');
-                }
                 showMainApp(user);
             } else {
                 showAuthScreen();
@@ -1548,19 +1302,14 @@
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('userEmail').textContent = user.email;
             
-            try {
-                if (!window.calculator) {
-                    window.calculator = new BudgetCalculator();
-                }
-                window.calculator.setUser(user);
-            } catch (error) {
-                console.error('Ошибка инициализации калькулятора:', error);
-                setTimeout(() => {
-                    showAlert('Проблема с инициализацией. Перезагрузите страницу.', 'warning');
-                }, 1000);
+            // Initialize calculator
+            if (!window.calculator) {
+                window.calculator = new BudgetCalculator();
             }
+            // Set user and load user data
+            window.calculator.setUser(user);
         }
-       
+
         function updateAuthConnectionStatus() {
             const statusEl = document.getElementById('authConnectionStatus');
             if (navigator.onLine) {
@@ -1626,198 +1375,58 @@
             return messages[errorCode] || 'Произошла ошибка. Попробуйте снова.';
         }
 
-        // Улучшенная регистрация Service Worker
-// Упрощенная регистрация Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((registration) => {
-                console.log('SW registered:', registration.scope);
-                
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed') {
-                            console.log('SW updated');
-                            if (navigator.serviceWorker.controller) {
-                                window.location.reload();
-                            }
-                        }
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('sw.js', {
+                        scope: '/'
                     });
-                });
-            })
-            .catch((error) => {
-                console.log('SW registration failed:', error);
+                    
+                    console.log('ServiceWorker registered:', registration.scope);
+                    
+                    // Обновление SW
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateNotification();
+                            }
+                        });
+                    });
+                    
+                } catch (error) {
+                    console.log('ServiceWorker registration failed:', error);
+                }
             });
-    });
-}
-            // Уведомляем пользователя о проблемах с кешированием
-            setTimeout(() => {
-                showAlert('Приложение работает в ограниченном режиме. Некоторые функции могут быть недоступны оффлайн.', 'warning');
-            }, 3000);
-// Обработчик сообщений от Service Worker
-function handleSWMessage(event) {
-    console.log('Received message from SW:', event.data);
-    
-    const messageHandlers = {
-        'SW_ACTIVATED': () => {
-            console.log('Service Worker activated successfully');
-            updateSyncStatus('connected');
-        },
-        
-        'SYNC_REQUEST': () => {
-            console.log('Background sync requested by SW');
-            if (window.calculator) {
-                // Выполняем синхронизацию данных
-                window.calculator.performSync().catch(console.error);
-            }
-        },
-        
-        'SYNC_COMPLETED': () => {
-            console.log('Background sync completed');
-            if (window.calculator) {
-                window.calculator.showSyncMessage('Фоновая синхронизация завершена', 'success');
-            }
-        },
-        
-        'SYNC_ERROR': (data) => {
-            console.error('Background sync error:', data.error);
-            if (window.calculator) {
-                window.calculator.showSyncMessage('Ошибка фоновой синхронизации', 'error');
-            }
-        },
-        
-        'NOTIFICATION_CLICK': () => {
-            console.log('User clicked on notification');
-            // Можно добавить специальную логику для обработки кликов по уведомлениям
         }
-    };
-    
-    if (event.data && event.data.type && messageHandlers[event.data.type]) {
-        messageHandlers[event.data.type](event.data);
-    }
-}
-
-// Функция для обновления статуса синхронизации (интеграция с основным приложением)
-function updateSyncStatus(status) {
-    if (window.calculator) {
-        window.calculator.setSyncStatus(status);
-    }
-}
-
-// Регистрация фоновой синхронизации
-async function registerBackgroundSync() {
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-        try {
-            const registration = await navigator.serviceWorker.ready;
-            await registration.sync.register('budget-sync');
-            console.log('Background sync registered successfully');
-        } catch (error) {
-            console.log('Background sync registration failed:', error);
-        }
-    }
-}
-
-// Автоматическая регистрация фоновой синхронизации при изменении данных
-function triggerBackgroundSync() {
-    registerBackgroundSync().catch(console.error);
-}
-
-// Обработка изменений сетевого статуса
-window.addEventListener('online', () => {
-    console.log('Network: online');
-    updateSyncStatus('connecting');
-    
-    // Запускаем фоновую синхронизацию при восстановлении соединения
-    setTimeout(triggerBackgroundSync, 1000);
-});
-
-window.addEventListener('offline', () => {
-    console.log('Network: offline');
-    updateSyncStatus('offline');
-});
-
-// Обработка перед закрытием страницы - запускаем фоновую синхронизацию
-window.addEventListener('beforeunload', () => {
-    if (window.calculator && window.calculator.pendingChanges) {
-        triggerBackgroundSync();
-    }
-});
 
         // Уведомление об обновлении
-      function showUpdateNotification() {
-    // Проверяем, не показывали ли уже это уведомление
-    if (sessionStorage.getItem('updateNotificationShown')) {
-        return;
-    }
-    
-    sessionStorage.setItem('updateNotificationShown', 'true');
-    
-    const updateBanner = document.createElement('div');
-    updateBanner.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #2196f3, #1976d2);
-        color: white;
-        padding: 15px;
-        text-align: center;
-        z-index: 10000;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Arial, sans-serif;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        animation: slideDown 0.3s ease-out;
-    `;
-    
-    updateBanner.innerHTML = `
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <div style="flex: 1; min-width: 200px;">
-                <strong>Доступно обновление приложения</strong>
-                <div style="font-size: 14px; opacity: 0.9;">Новые возможности и исправления ошибок</div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="updateNowBtn" style="padding: 8px 16px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 4px; cursor: pointer; font-weight: 500;">
-                    Обновить сейчас
+        function showUpdateNotification() {
+            const updateBanner = document.createElement('div');
+            updateBanner.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: #2196f3;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                z-index: 9999;
+                font-family: Arial, sans-serif;
+            `;
+            updateBanner.innerHTML = `
+                Доступно обновление приложения
+                <button onclick="window.location.reload()" style="margin-left: 10px; padding: 5px 10px; background: white; color: #2196f3; border: none; border-radius: 3px; cursor: pointer;">
+                    Обновить
                 </button>
-                <button id="updateLaterBtn" style="padding: 8px 16px; background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 4px; cursor: pointer;">
+                <button onclick="this.parentElement.remove()" style="margin-left: 5px; padding: 5px 10px; background: transparent; color: white; border: 1px solid white; border-radius: 3px; cursor: pointer;">
                     Позже
                 </button>
-            </div>
-        </div>
-    `;
-    
-    // Добавляем CSS анимацию
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideDown {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            `;
+            document.body.prepend(updateBanner);
         }
-    `;
-    document.head.appendChild(style);
-    
-    document.body.prepend(updateBanner);
-    
-    // Обработчики кнопок
-    document.getElementById('updateNowBtn').onclick = () => {
-        updateBanner.remove();
-        window.location.reload(true);
-    };
-    
-    document.getElementById('updateLaterBtn').onclick = () => {
-        updateBanner.remove();
-        if (window.showAlert) {
-            showAlert('Обновление будет применено при следующем перезапуске приложения', 'info');
-        }
-    };
-    
-    // Автоматически скрываем баннер через 30 секунд
-    setTimeout(() => {
-        if (document.body.contains(updateBanner)) {
-            updateBanner.remove();
-        }
-    }, 30000);
-}
 
         // PWA Install Logic
         let deferredPrompt;
@@ -1913,7 +1522,7 @@ window.addEventListener('beforeunload', () => {
             }, 500);
         }
 
-        // Полностью обновленный BudgetCalculator с автоматической синхронизацией
+        // Modofied BudgetCalculator class with Firestore sync
         class BudgetCalculator {
             constructor() {
                 this.currentTab = 'main';
@@ -1941,7 +1550,7 @@ window.addEventListener('beforeunload', () => {
                         { name: 'Машина', icon: '🚗' },
                         { name: 'Развлечения', icon: '🎬' },
                         { name: 'Вещи', icon: '🛍️' },
-                        { name: 'Здоровье', icon: '🏥' },
+                        { name: 'Здоровье', icon: '🥺' },
                         { name: 'Учеба', icon: '📚' },
                         { name: 'Коммунальные', icon: '💡' },
                         { name: 'Продукты', icon: '🛒' },
@@ -1959,510 +1568,181 @@ window.addEventListener('beforeunload', () => {
                         { name: 'Другое', icon: '📦' }
                     ]
                 };
-                this.customCategories = { main: [], vacation: [] };
+                this.customCategories = JSON.parse(localStorage.getItem('customCategories')) || { main: [], vacation: [] };
                 this.categoryChart = null;
                 this.timeChart = null;
-                
-                // Новые свойства для синхронизации
                 this.isOnline = navigator.onLine;
-                this.syncQueue = []; // Очередь операций для синхронизации
-                this.lastSyncTime = 0;
-                this.syncInterval = null;
+                this.syncInProgress = false;
                 this.unsubscribe = null;
-                this.deviceId = this.generateDeviceId();
-                this.pendingChanges = false;
-                this.syncStatus = 'disconnected';
-                
+                this.saveTimeout = null;
                 this.init();
-                this.initializeSync();
+                this.startAutoBackup();
                 this.updateExchangeRates();
             }
 
-            // Генерация уникального ID устройства
-            generateDeviceId() {
-                let deviceId = localStorage.getItem('deviceId');
-                if (!deviceId) {
-                    deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('deviceId', deviceId);
-                }
-                return deviceId;
-            }
-
-            // Инициализация системы синхронизации
-            initializeSync() {
-    // Отключаем сложную синхронизацию Service Worker
-    this.useServiceWorkerSync = false;
-    
-    // Простая обработка сетевых событий
-    window.addEventListener('online', () => {
-        this.isOnline = true;
-        this.updateConnectionStatus();
-        if (this.userId && this.pendingChanges) {
-            setTimeout(() => {
-                this.uploadToCloud().catch(console.error);
-            }, 1000);
-        }
-    });
-
-    window.addEventListener('offline', () => {
-        this.isOnline = false;
-        this.updateConnectionStatus();
-    });
-
-    // Простая периодическая синхронизация
-    if (this.syncInterval) clearInterval(this.syncInterval);
-    
-    this.syncInterval = setInterval(() => {
-        if (this.isOnline && this.userId && this.pendingChanges) {
-            this.uploadToCloud().catch(console.error);
-        }
-    }, 30000); // каждые 30 секунд
-
-    this.updateConnectionStatus();
-}
-            // Установка пользователя и запуск синхронизации
+            // Set user and load user data from Firestore
             setUser(user) {
                 this.userId = user.uid;
-                this.startSync();
+                this.loadUserData();
+                this.setupRealtimeSync();
             }
 
-            // Запуск синхронизации
-            async startSync() {
-                if (!this.userId) return;
-
-                try {
-                    this.setSyncStatus('connecting');
-                    
-                    // Загружаем данные из облака
-                    await this.loadCloudData();
-                    
-                    // Настраиваем реальное время синхронизацию
-                    this.setupRealtimeSync();
-                    
-                    // Отправляем локальные изменения в облако
-                    await this.uploadPendingChanges();
-                    
-                    this.setSyncStatus('connected');
-                    this.showSyncMessage('Синхронизация активна', 'success');
-                    
-                } catch (error) {
-                    console.error('Ошибка запуска синхронизации:', error);
-                    this.setSyncStatus('error');
-                    this.showSyncMessage('Ошибка синхронизации', 'error');
-                }
-            }
-
-            // Остановка синхронизации
-            stopSync() {
-                if (this.unsubscribe) {
-                    this.unsubscribe();
-                    this.unsubscribe = null;
-                }
-                this.setSyncStatus('offline');
-            }
-
-            // Настройка реального времени синхронизации
-            setupRealtimeSync() {
-                if (!this.userId) return;
-                
-                // Отключаем предыдущую подписку
-                if (this.unsubscribe) {
-                    this.unsubscribe();
-                }
-
-                const userDocRef = firestoreDoc(db, 'users', this.userId);
-                
-                this.unsubscribe = firestoreOnSnapshot(userDocRef, (doc) => {
-                    if (doc.exists()) {
-                        this.handleCloudDataUpdate(doc.data());
-                    }
-                }, (error) => {
-                    console.error('Ошибка реального времени синхронизации:', error);
-                    this.setSyncStatus('error');
-                });
-            }
-
-            // Обработка обновлений из облака
-            handleCloudDataUpdate(cloudData) {
-                try {
-                    // Проверяем, что обновление не от текущего устройства
-                    if (cloudData.lastUpdatedBy === this.deviceId) {
-                        return; // Игнорируем собственные обновления
-                    }
-
-                    const cloudTimestamp = cloudData.lastUpdated || 0;
-                    const localTimestamp = this.getLocalTimestamp();
-
-                    // Обновляем только если облачные данные новее
-                    if (cloudTimestamp > localTimestamp) {
-                        console.log('Получены новые данные из облака');
-                        
-                        this.applyCloudData(cloudData);
-                        this.setLocalTimestamp(cloudTimestamp);
-                        
-                        this.updateAllDisplays();
-                        this.populateCategories();
-                        
-                        this.showSyncMessage('Данные обновлены с другого устройства', 'info');
-                    }
-                } catch (error) {
-                    console.error('Ошибка обработки облачных данных:', error);
-                }
-            }
-
-            // Применение данных из облака
-            applyCloudData(cloudData) {
-                if (cloudData.budgetData) {
-                    this.data = cloudData.budgetData;
-                }
-                if (cloudData.customCategories) {
-                    this.customCategories = cloudData.customCategories;
-                }
-                if (cloudData.settings) {
-                    this.baseCurrency = cloudData.settings.baseCurrency || 'RUB';
-                    this.exchangeRates = cloudData.settings.exchangeRates || this.exchangeRates;
-                }
-                
-                // Сохраняем локально
-                this.saveToLocalStorage();
-            }
-
-            // Загрузка данных из облака
-            async loadCloudData() {
-                if (!this.userId) {
-                    this.loadFromLocalStorage();
+            // Load user data from Firestore
+            async loadUserData() {
+                if (!this.userId || !navigator.onLine) {
+                    this.loadData(); // Load local data
                     return;
                 }
 
                 try {
+                    this.showSyncStatus('Загрузка данных...', 'info');
+                    
                     const userDocRef = firestoreDoc(db, 'users', this.userId);
                     const userDoc = await firestoreGetDoc(userDocRef);
                     
                     if (userDoc.exists()) {
-                        const cloudData = userDoc.data();
-                        this.applyCloudData(cloudData);
-                        this.setLocalTimestamp(cloudData.lastUpdated || 0);
+                        const userData = userDoc.data();
+                        
+                        // Update local data with cloud data
+                        this.data = userData.budgetData || this.getDefaultBudgetData();
+                        this.customCategories = userData.customCategories || { main: [], vacation: [] };
+                        this.baseCurrency = userData.settings?.baseCurrency || 'RUB';
+                        this.exchangeRates = userData.settings?.exchangeRates || this.exchangeRates;
+                        
+                        // Save to localStorage as backup
+                        this.saveDataLocally();
+                        this.showSyncStatus('Данные синхронизированы', 'success');
+                        
                     } else {
-                        // Первый раз - загружаем локальные данные и отправляем в облако
-                        this.loadFromLocalStorage();
-                        await this.uploadToCloud();
+                        // First time login - create user document
+                        await this.saveUserData();
+                        this.showSyncStatus('Создан новый профиль', 'success');
                     }
                     
                     this.updateAllDisplays();
                     this.populateCategories();
                     
                 } catch (error) {
-                    console.error('Ошибка загрузки из облака:', error);
-                    this.loadFromLocalStorage();
-                    throw error;
+                    console.error('Ошибка загрузки данных:', error);
+                    this.showSyncStatus('Ошибка синхронизации. Используются локальные данные', 'warning');
+                    this.loadData(); // Load local data on error
                 }
             }
 
-            // Загрузка данных из локального хранилища
-            loadFromLocalStorage() {
-                try {
-                    const mainData = localStorage.getItem('budgetData_main');
-                    const vacationData = localStorage.getItem('budgetData_vacation');
-                    const customCategories = localStorage.getItem('customCategories');
-                    const baseCurrency = localStorage.getItem('baseCurrency');
-                    const exchangeRates = localStorage.getItem('exchangeRates');
+            // Save user data to Firestore
+            async saveUserData() {
+                if (!this.userId || this.syncInProgress) {
+                    this.saveDataLocally(); // Save locally if no connection
+                    return;
+                }
 
-                    this.data = {
-                        main: mainData ? JSON.parse(mainData) : this.getDefaultData(),
-                        vacation: vacationData ? JSON.parse(vacationData) : this.getDefaultData()
+                try {
+                    this.syncInProgress = true;
+                    this.showSyncStatus('Синхронизация...', 'info');
+                    
+                    const userDocRef = firestoreDoc(db, 'users', this.userId);
+                    const userData = {
+                        budgetData: this.data,
+                        customCategories: this.customCategories,
+                        settings: {
+                            baseCurrency: this.baseCurrency,
+                            exchangeRates: this.exchangeRates
+                        },
+                        lastUpdated: new Date().toISOString()
                     };
-
-                    if (customCategories) {
-                        this.customCategories = JSON.parse(customCategories);
-                    }
-
-                    if (baseCurrency) {
-                        this.baseCurrency = baseCurrency;
-                    }
-
-                    if (exchangeRates) {
-                        this.exchangeRates = JSON.parse(exchangeRates);
-                    }
-
-                } catch (error) {
-                    console.error('Ошибка загрузки локальных данных:', error);
-                    this.initializeDefaultData();
-                }
-            }
-
-            // Сохранение в локальное хранилище
-            saveToLocalStorage() {
-                try {
-                    localStorage.setItem('budgetData_main', JSON.stringify(this.data.main));
-                    localStorage.setItem('budgetData_vacation', JSON.stringify(this.data.vacation));
-                    localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
-                    localStorage.setItem('baseCurrency', this.baseCurrency);
-                    localStorage.setItem('exchangeRates', JSON.stringify(this.exchangeRates));
-                } catch (error) {
-                    console.error('Ошибка сохранения в локальное хранилище:', error);
-                }
-            }
-
-            // Отправка данных в облако
-            async uploadToCloud() {
-    if (!this.userId || !this.isOnline) {
-        this.pendingChanges = true;
-        return;
-    }
-
-    try {
-        this.setSyncStatus('syncing');
-        
-        const timestamp = Date.now();
-        const userDocRef = firestoreDoc(db, 'users', this.userId);
-        
-        const cloudData = {
-            budgetData: this.data,
-            customCategories: this.customCategories,
-            settings: {
-                baseCurrency: this.baseCurrency,
-                exchangeRates: this.exchangeRates
-            },
-            lastUpdated: timestamp,
-            lastUpdatedBy: this.deviceId,
-            version: 1
-        };
-
-        await firestoreSetDoc(userDocRef, cloudData);
-        
-        this.setLocalTimestamp(timestamp);
-        this.pendingChanges = false;
-        this.setSyncStatus('connected');
-        
-        console.log('Данные успешно отправлены в облако');
-        
-    } catch (error) {
-        console.error('Ошибка отправки в облако:', error);
-        this.pendingChanges = true;
-        this.setSyncStatus('error');
-        
-        if (error.code !== 'permission-denied' && error.code !== 'unavailable') {
-            this.showSyncMessage('Ошибка синхронизации: ' + error.message, 'error');
-        }
-        
-        throw error;
-    }
-}
-
-            // Загрузка ожидающих изменений
-            async uploadPendingChanges() {
-                if (this.pendingChanges && this.isOnline && this.userId) {
-                    await this.uploadToCloud();
-                }
-            }
-
-            // Выполнение синхронизации
-            async performSync() {
-                if (!this.userId || !this.isOnline) return;
-
-                try {
-                    // Отправляем локальные изменения если есть
-                    if (this.pendingChanges) {
-                        await this.uploadToCloud();
-                    }
                     
-                    this.lastSyncTime = Date.now();
+                    await firestoreSetDoc(userDocRef, userData, { merge: true });
+                    
+                    // Also save locally
+                    this.saveDataLocally();
+                    this.showSyncStatus('Данные сохранены', 'success');
                     
                 } catch (error) {
-                    console.error('Ошибка синхронизации:', error);
+                    console.error('Ошибка сохранения:', error);
+                    this.showSyncStatus('Ошибка синхронизации', 'error');
+                    this.saveDataLocally(); // Save locally on error
+                } finally {
+                    this.syncInProgress = false;
                 }
             }
 
-            // Сохранение данных с автоматической синхронизацией
-            saveData(mode) {
-                // Сохраняем локально немедленно
-                this.saveToLocalStorage();
+            // Setup real-time sync
+            setupRealtimeSync() {
+                if (!this.userId) return;
+
+                const userDocRef = firestoreDoc(db, 'users', this.userId);
                 
-                // Отмечаем что есть изменения для синхронизации
-                this.pendingChanges = true;
-                
-                // Если онлайн - синхронизируем немедленно
-                if (this.isOnline && this.userId) {
-                    // Небольшая задержка для группировки изменений
-                    clearTimeout(this.syncTimeout);
-                    this.syncTimeout = setTimeout(() => {
-                        this.uploadToCloud().catch(error => {
-                            console.error('Ошибка автосинхронизации:', error);
-                        });
-                    }, 1000);
-                }
+                // Subscribe to document changes
+                this.unsubscribe = firestoreOnSnapshot(userDocRef, (doc) => {
+                    if (doc.exists() && !this.syncInProgress) {
+                        const userData = doc.data();
+                        const lastUpdated = userData.lastUpdated;
+                        const localLastUpdated = localStorage.getItem('lastLocalUpdate');
+                        
+                        // Update only if data is newer than local
+                        if (!localLastUpdated || lastUpdated > localLastUpdated) {
+                            this.data = userData.budgetData || this.getDefaultBudgetData();
+                            this.customCategories = userData.customCategories || { main: [], vacation: [] };
+                            this.baseCurrency = userData.settings?.baseCurrency || 'RUB';
+                            this.exchangeRates = userData.settings?.exchangeRates || this.exchangeRates;
+                            
+                            this.saveDataLocally();
+                            this.updateAllDisplays();
+                            this.populateCategories();
+                            
+                            this.showSyncStatus('Данные обновлены с другого устройства', 'info');
+                        }
+                    }
+                }, (error) => {
+                    console.error('Ошибка реального времени синхронизации:', error);
+                });
             }
 
-            // Принудительная синхронизация
-            async forceSync() {
-                if (!this.userId) {
-                    this.showSyncMessage('Войдите в аккаунт для синхронизации', 'warning');
-                    return;
-                }
-
-                if (!this.isOnline) {
-                    this.showSyncMessage('Нет подключения к интернету', 'warning');
-                    return;
-                }
-
-                try {
-                    this.setSyncStatus('syncing');
-                    this.showSyncMessage('Принудительная синхронизация...', 'info');
-                    
-                    // Загружаем последние данные из облака
-                    await this.loadCloudData();
-                    
-                    // Отправляем локальные изменения
-                    await this.uploadToCloud();
-                    
-                    this.setSyncStatus('connected');
-                    this.showSyncMessage('Синхронизация завершена', 'success');
-                    
-                } catch (error) {
-                    console.error('Ошибка принудительной синхронизации:', error);
-                    this.setSyncStatus('error');
-                    this.showSyncMessage('Ошибка синхронизации', 'error');
-                }
+            // Save local data (backup)
+            saveDataLocally() {
+                localStorage.setItem('budgetData_main', JSON.stringify(this.data.main));
+                localStorage.setItem('budgetData_vacation', JSON.stringify(this.data.vacation));
+                localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
+                localStorage.setItem('baseCurrency', this.baseCurrency);
+                localStorage.setItem('exchangeRates', JSON.stringify(this.exchangeRates));
+                localStorage.setItem('lastLocalUpdate', new Date().toISOString());
             }
 
-            // Получение временной метки локальных данных
-            getLocalTimestamp() {
-                return parseInt(localStorage.getItem('lastLocalTimestamp') || '0');
-            }
-
-            // Установка временной метки локальных данных
-            setLocalTimestamp(timestamp) {
-                localStorage.setItem('lastLocalTimestamp', timestamp.toString());
-            }
-
-            // Установка статуса синхронизации
-            setSyncStatus(status) {
-                this.syncStatus = status;
-                this.updateSyncStatusDisplay();
-            }
-
-            // Обновление отображения статуса синхронизации
-            updateSyncStatusDisplay() {
-                const statusEl = document.getElementById('backupStatus');
-                if (!statusEl) return;
-
-                const statusTexts = {
-                    'disconnected': 'Синхронизация отключена',
-                    'connecting': 'Подключение...',
-                    'connected': 'Синхронизация активна',
-                    'syncing': 'Синхронизация...',
-                    'offline': 'Работа офлайн',
-                    'error': 'Ошибка синхронизации'
+            // Get default budget data
+            getDefaultBudgetData() {
+                return {
+                    main: this.getDefaultData(),
+                    vacation: this.getDefaultData()
                 };
-
-                const statusClasses = {
-                    'disconnected': 'sync-status warning',
-                    'connecting': 'sync-status info',
-                    'connected': 'sync-status success',
-                    'syncing': 'sync-status info',
-                    'offline': 'sync-status warning',
-                    'error': 'sync-status error'
-                };
-
-                const statusIcons = {
-                    'disconnected': '⚠️',
-                    'connecting': '🔄',
-                    'connected': '✅',
-                    'syncing': '🔄',
-                    'offline': '📱',
-                    'error': '❌'
-                };
-
-                statusEl.className = statusClasses[this.syncStatus] || 'sync-status';
-                statusEl.textContent = `${statusIcons[this.syncStatus]} ${statusTexts[this.syncStatus]}`;
-
-                // Показываем индикатор ожидающих изменений
-                if (this.pendingChanges && this.syncStatus === 'offline') {
-                    statusEl.textContent += ' (есть несохраненные изменения)';
-                }
             }
 
-            // Обновление статуса подключения
-            updateConnectionStatus() {
-                const statusEl = document.getElementById('connectionStatus');
-                if (!statusEl) return;
-
-                if (this.isOnline) {
-                    statusEl.className = 'connection-status online';
-                    statusEl.textContent = '🌐 Подключение активно';
-                } else {
-                    statusEl.className = 'connection-status offline';
-                    statusEl.textContent = '📱 Работа офлайн';
-                }
-            }
-
-            // Показать сообщение о синхронизации
-            showSyncMessage(message, type) {
+            // Show sync status
+            showSyncStatus(message, type) {
                 const statusEl = document.getElementById('backupStatus');
                 if (statusEl) {
-                    const originalClass = statusEl.className;
-                    const originalText = statusEl.textContent;
-                    
                     statusEl.className = `sync-status ${type}`;
                     statusEl.textContent = message;
                     
+                    // Automatically hide message after 3 seconds
                     setTimeout(() => {
-                        statusEl.className = originalClass;
-                        statusEl.textContent = originalText;
+                        if (statusEl.textContent === message) {
+                            statusEl.className = 'sync-status';
+                            statusEl.textContent = '✅ Автосохранение активно';
+                        }
                     }, 3000);
                 }
             }
 
-            // Получение данных для синхронизации
-            getDataForSync() {
-                return {
-                    budgetData: this.data,
-                    customCategories: this.customCategories,
-                    settings: {
-                        baseCurrency: this.baseCurrency,
-                        exchangeRates: this.exchangeRates
-                    },
-                    timestamp: Date.now(),
-                    deviceId: this.deviceId
-                };
-            }
-
-            // Инициализация данных по умолчанию
-            initializeDefaultData() {
-                this.data = {
-                    main: this.getDefaultData(),
-                    vacation: this.getDefaultData()
-                };
-                this.customCategories = { main: [], vacation: [] };
-            }
-
-            // Получение данных по умолчанию
-            getDefaultData() {
-                return {
-                    budget: {
-                        total: 0,
-                        currency: 'RUB',
-                        startDate: null,
-                        endDate: null,
-                        dailyLimit: 0
-                    },
-                    expenses: []
-                };
-            }
-
-            // Очистка при выходе
+            // Cleanup subscriptions and timeouts
             cleanup() {
                 if (this.unsubscribe) {
                     this.unsubscribe();
                 }
-                if (this.syncInterval) {
-                    clearInterval(this.syncInterval);
-                }
-                clearTimeout(this.syncTimeout);
+                clearTimeout(this.saveTimeout);
             }
 
             init() {
-                this.loadFromLocalStorage();
+                this.loadData();
                 this.loadSettings();
                 this.updateAllDisplays();
                 this.setDefaultDates();
@@ -2474,6 +1754,22 @@ window.addEventListener('beforeunload', () => {
                 if ('Notification' in window && Notification.permission === 'default') {
                     Notification.requestPermission();
                 }
+            }
+
+            startAutoBackup() {
+                setInterval(() => {
+                    this.autoBackup();
+                }, 60000);
+            }
+
+            autoBackup() {
+                const backupData = {
+                    data: this.data,
+                    customCategories: this.customCategories,
+                    baseCurrency: this.baseCurrency,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('autoBackup', JSON.stringify(backupData));
             }
 
             async updateExchangeRates() {
@@ -2518,7 +1814,7 @@ window.addEventListener('beforeunload', () => {
                             '⚠️ Используются сохранённые курсы';
                     } else {
                         document.getElementById('exchangeRateStatus').textContent = 
-                            '⌀ Ошибка загрузки курсов. Используются базовые значения.';
+                            '❌ Ошибка загрузки курсов. Используются базовые значения.';
                     }
                 }
             }
@@ -2542,6 +1838,36 @@ window.addEventListener('beforeunload', () => {
                 endDate.setDate(endDate.getDate() + 30);
                 document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
                 document.getElementById('endDateVacation').value = endDate.toISOString().split('T')[0];
+            }
+
+            loadData() {
+                this.data = {
+                    main: JSON.parse(localStorage.getItem('budgetData_main')) || this.getDefaultData(),
+                    vacation: JSON.parse(localStorage.getItem('budgetData_vacation')) || this.getDefaultData()
+                };
+            }
+
+            getDefaultData() {
+                return {
+                    budget: {
+                        total: 0,
+                        currency: 'RUB',
+                        startDate: null,
+                        endDate: null,
+                        dailyLimit: 0
+                    },
+                    expenses: []
+                };
+            }
+
+            saveData(mode) {
+                this.saveDataLocally();
+                
+                // Save to cloud with small delay to group changes
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = setTimeout(() => {
+                    this.saveUserData();
+                }, 1000);
             }
 
             generateId() {
@@ -3498,142 +2824,6 @@ window.addEventListener('beforeunload', () => {
         function updateExchangeRates() {
             if (window.calculator) window.calculator.updateExchangeRates();
         }
-
-        // Дополнительные функции для UI синхронизации
-        function showSyncStatus() {
-            if (!window.calculator) return;
-            
-            const calc = window.calculator;
-            
-            // Обновляем отображение информации о синхронизации
-            document.getElementById('userIdDisplay').textContent = calc.userId || 'Не авторизован';
-            document.getElementById('deviceIdDisplay').textContent = calc.deviceId || '-';
-            document.getElementById('syncStatusDisplay').textContent = calc.syncStatus || 'Неизвестно';
-            document.getElementById('localTimestampDisplay').textContent = 
-                calc.getLocalTimestamp() ? new Date(calc.getLocalTimestamp()).toLocaleString() : 'Никогда';
-            
-            // Обновляем статус ожидающих изменений
-            document.getElementById('pendingChanges').textContent = 
-                calc.pendingChanges ? 'Да' : 'Нет';
-            
-            // Обновляем информацию об устройстве
-            const deviceInfo = `${navigator.platform} - ${navigator.userAgent.split(' ')[0]}`;
-            document.getElementById('deviceInfo').textContent = deviceInfo.substring(0, 30) + '...';
-            
-            // Обновляем время последней синхронизации
-            if (calc.lastSyncTime) {
-                document.getElementById('lastSyncTime').textContent = 
-                    new Date(calc.lastSyncTime).toLocaleTimeString();
-            }
-            
-            alert('Информация о синхронизации обновлена в настройках');
-        }
-
-        function resetSyncData() {
-            if (!confirm('Это сбросит все данные синхронизации и заставит приложение заново загрузить данные из облака. Продолжить?')) {
-                return;
-            }
-            
-            try {
-                // Очищаем локальные метки времени
-                localStorage.removeItem('lastLocalTimestamp');
-                localStorage.removeItem('deviceId');
-                
-                // Перезапускаем синхронизацию
-                if (window.calculator) {
-                    window.calculator.deviceId = window.calculator.generateDeviceId();
-                    window.calculator.startSync();
-                }
-                
-                alert('Данные синхронизации сброшены. Приложение перезагрузит данные из облака.');
-                
-            } catch (error) {
-                alert('Ошибка при сбросе данных синхронизации: ' + error.message);
-            }
-        }
-
-        function toggleAutoSync() {
-            const enabled = document.getElementById('autoSyncEnabled').checked;
-            if (window.calculator) {
-                window.calculator.autoSyncEnabled = enabled;
-                localStorage.setItem('autoSyncEnabled', enabled.toString());
-            }
-            
-            document.getElementById('autoSyncStatus').textContent = enabled ? 'Включена' : 'Отключена';
-        }
-
-        function toggleRealtimeSync() {
-            const enabled = document.getElementById('realtimeSyncEnabled').checked;
-            if (window.calculator) {
-                if (enabled) {
-                    window.calculator.setupRealtimeSync();
-                } else {
-                    if (window.calculator.unsubscribe) {
-                        window.calculator.unsubscribe();
-                    }
-                }
-                localStorage.setItem('realtimeSyncEnabled', enabled.toString());
-            }
-        }
-
-        function updateSyncInterval() {
-            const interval = parseInt(document.getElementById('syncInterval').value);
-            if (window.calculator && interval >= 5 && interval <= 300) {
-                // Перезапускаем интервал синхронизации
-                if (window.calculator.syncInterval) {
-                    clearInterval(window.calculator.syncInterval);
-                }
-                
-                window.calculator.syncInterval = setInterval(() => {
-                    if (window.calculator.isOnline && window.calculator.userId) {
-                        window.calculator.performSync();
-                    }
-                }, interval * 1000);
-                
-                localStorage.setItem('syncInterval', interval.toString());
-            }
-        }
-
-        // Функция для периодического обновления UI
-        function updateSyncUI() {
-            if (!window.calculator) return;
-            
-            const calc = window.calculator;
-            
-            // Обновляем время последней синхронизации
-            if (calc.lastSyncTime) {
-                const timeElement = document.getElementById('lastSyncTime');
-                if (timeElement) {
-                    timeElement.textContent = new Date(calc.lastSyncTime).toLocaleTimeString();
-                }
-            }
-            
-            // Обновляем статус ожидающих изменений
-            const pendingElement = document.getElementById('pendingChanges');
-            if (pendingElement) {
-                pendingElement.textContent = calc.pendingChanges ? 'Да' : 'Нет';
-                pendingElement.style.color = calc.pendingChanges ? '#ff9800' : '#4caf50';
-            }
-        }
-
-        // Запускаем обновление UI каждые 5 секунд
-        setInterval(updateSyncUI, 5000);
-
-        // Загружаем настройки при запуске
-        document.addEventListener('DOMContentLoaded', () => {
-            // Восстанавливаем настройки синхронизации
-            const autoSyncEnabled = localStorage.getItem('autoSyncEnabled') !== 'false';
-            const realtimeSyncEnabled = localStorage.getItem('realtimeSyncEnabled') !== 'false';
-            const syncInterval = parseInt(localStorage.getItem('syncInterval') || '10');
-            
-            const autoSyncCheckbox = document.getElementById('autoSyncEnabled');
-            const realtimeSyncCheckbox = document.getElementById('realtimeSyncEnabled');
-            const syncIntervalInput = document.getElementById('syncInterval');
-            
-            if (autoSyncCheckbox) autoSyncCheckbox.checked = autoSyncEnabled;
-            if (realtimeSyncCheckbox) realtimeSyncCheckbox.checked = realtimeSyncEnabled;
-            if (syncIntervalInput) syncIntervalInput.value = syncInterval;
-        });
 
         // Close modal when clicking outside
         window.onclick = function(event) {
