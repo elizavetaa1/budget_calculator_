@@ -163,6 +163,7 @@
             font-size: 14px;
             margin: 10px 0;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
         .sync-status.info {
@@ -183,6 +184,24 @@
         .sync-status.warning {
             background: #fff3cd;
             color: #856404;
+        }
+
+        .backup-status, .exchange-rate-status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .backup-status {
+            background: #e8f5e8;
+            color: #2e7d2e;
+        }
+
+        .exchange-rate-status {
+            background: #e3f2fd;
+            color: #1976d2;
         }
 
         .tabs {
@@ -561,24 +580,6 @@
             gap: 10px;
         }
 
-        .backup-status, .exchange-rate-status {
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
-            margin: 10px 0;
-            text-align: center;
-        }
-
-        .backup-status {
-            background: #e8f5e8;
-            color: #2e7d2e;
-        }
-
-        .exchange-rate-status {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
         .currency-converter {
             background: #f5f5f5;
             padding: 15px;
@@ -833,7 +834,7 @@
 <body>
     <!-- Экран авторизации -->
     <div id="authContainer" class="auth-container">
-        <h1> 🏦 Калькулятор Бюджета</h1>
+        <h1>🏦 Калькулятор Бюджета</h1>
         
         <div class="loading-spinner" id="loadingSpinner">
             <div class="spinner"></div>
@@ -874,7 +875,7 @@
             🌐 Подключение активно
         </div>
         
-        <div class="backup-status" id="backupStatus">
+        <div class="sync-status" id="backupStatus">
             ✅ Автосохранение активно
         </div>
 
@@ -899,7 +900,7 @@
                 </div>
                 <div>
                     <label for="newCategoryIcon">Иконка:</label>
-                    <input type="text" id="newCategoryIcon" placeholder="🏠" maxlength="2">
+                    <input type="text" id="newCategoryIcon" placeholder="📦" maxlength="2">
                 </div>
                 <div>
                     <button onclick="addCustomCategory()">Добавить</button>
@@ -1250,6 +1251,7 @@
         // Import Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
         // Firebase config
         const firebaseConfig = {
@@ -1265,12 +1267,18 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // Global variables for Firebase
         window.auth = auth;
+        window.db = db;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.firebaseSignOut = firebaseSignOut;
         window.onAuthStateChanged = onAuthStateChanged;
+        window.firestoreDoc = doc;
+        window.firestoreSetDoc = setDoc;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreOnSnapshot = onSnapshot;
 
         // Check auth state and initialize app
         onAuthStateChanged(auth, (user) => {
@@ -1298,8 +1306,8 @@
             if (!window.calculator) {
                 window.calculator = new BudgetCalculator();
             }
-            // Set global reference for functions
-            window.calculator = window.calculator;
+            // Set user and load user data
+            window.calculator.setUser(user);
         }
 
         function updateAuthConnectionStatus() {
@@ -1344,9 +1352,12 @@
 
         async function signOut() {
             try {
+                if (window.calculator) {
+                    window.calculator.cleanup();
+                }
+                
                 await firebaseSignOut(auth);
                 showAlert('Выход выполнен', 'info');
-                // Clear calculator instance
                 window.calculator = null;
             } catch (error) {
                 console.error('Ошибка выхода:', error);
@@ -1511,12 +1522,13 @@
             }, 500);
         }
 
-        // Original BudgetCalculator class with fixed AED currency
+        // Modofied BudgetCalculator class with Firestore sync
         class BudgetCalculator {
             constructor() {
                 this.currentTab = 'main';
                 this.editingExpense = null;
                 this.editingMode = null;
+                this.userId = null;
                 this.baseCurrency = 'RUB';
                 this.exchangeRates = {
                     'RUB': 1,
@@ -1530,14 +1542,14 @@
                     'USD': '$',
                     'EUR': '€',
                     'OMR': 'OMR',
-                    'AED': 'AED'  // Исправлено: добавлен символ для AED
+                    'AED': 'AED'
                 };
                 this.defaultCategories = {
                     main: [
                         { name: 'Доставка', icon: '🍕' },
                         { name: 'Машина', icon: '🚗' },
                         { name: 'Развлечения', icon: '🎬' },
-                        { name: 'Вещи', icon: '🛏️' },
+                        { name: 'Вещи', icon: '🛍️' },
                         { name: 'Здоровье', icon: '🥺' },
                         { name: 'Учеба', icon: '📚' },
                         { name: 'Коммунальные', icon: '💡' },
@@ -1551,7 +1563,7 @@
                         { name: 'Развлечения', icon: '🎭' },
                         { name: 'Экскурсии', icon: '🗺️' },
                         { name: 'Сувениры', icon: '🎁' },
-                        { name: 'Вещи', icon: '🛏️' },
+                        { name: 'Вещи', icon: '🛍️' },
                         { name: 'Медицина', icon: '💊' },
                         { name: 'Другое', icon: '📦' }
                     ]
@@ -1560,9 +1572,173 @@
                 this.categoryChart = null;
                 this.timeChart = null;
                 this.isOnline = navigator.onLine;
+                this.syncInProgress = false;
+                this.unsubscribe = null;
+                this.saveTimeout = null;
                 this.init();
                 this.startAutoBackup();
                 this.updateExchangeRates();
+            }
+
+            // Set user and load user data from Firestore
+            setUser(user) {
+                this.userId = user.uid;
+                this.loadUserData();
+                this.setupRealtimeSync();
+            }
+
+            // Load user data from Firestore
+            async loadUserData() {
+                if (!this.userId || !navigator.onLine) {
+                    this.loadData(); // Load local data
+                    return;
+                }
+
+                try {
+                    this.showSyncStatus('Загрузка данных...', 'info');
+                    
+                    const userDocRef = firestoreDoc(db, 'users', this.userId);
+                    const userDoc = await firestoreGetDoc(userDocRef);
+                    
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        
+                        // Update local data with cloud data
+                        this.data = userData.budgetData || this.getDefaultBudgetData();
+                        this.customCategories = userData.customCategories || { main: [], vacation: [] };
+                        this.baseCurrency = userData.settings?.baseCurrency || 'RUB';
+                        this.exchangeRates = userData.settings?.exchangeRates || this.exchangeRates;
+                        
+                        // Save to localStorage as backup
+                        this.saveDataLocally();
+                        this.showSyncStatus('Данные синхронизированы', 'success');
+                        
+                    } else {
+                        // First time login - create user document
+                        await this.saveUserData();
+                        this.showSyncStatus('Создан новый профиль', 'success');
+                    }
+                    
+                    this.updateAllDisplays();
+                    this.populateCategories();
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки данных:', error);
+                    this.showSyncStatus('Ошибка синхронизации. Используются локальные данные', 'warning');
+                    this.loadData(); // Load local data on error
+                }
+            }
+
+            // Save user data to Firestore
+            async saveUserData() {
+                if (!this.userId || this.syncInProgress) {
+                    this.saveDataLocally(); // Save locally if no connection
+                    return;
+                }
+
+                try {
+                    this.syncInProgress = true;
+                    this.showSyncStatus('Синхронизация...', 'info');
+                    
+                    const userDocRef = firestoreDoc(db, 'users', this.userId);
+                    const userData = {
+                        budgetData: this.data,
+                        customCategories: this.customCategories,
+                        settings: {
+                            baseCurrency: this.baseCurrency,
+                            exchangeRates: this.exchangeRates
+                        },
+                        lastUpdated: new Date().toISOString()
+                    };
+                    
+                    await firestoreSetDoc(userDocRef, userData, { merge: true });
+                    
+                    // Also save locally
+                    this.saveDataLocally();
+                    this.showSyncStatus('Данные сохранены', 'success');
+                    
+                } catch (error) {
+                    console.error('Ошибка сохранения:', error);
+                    this.showSyncStatus('Ошибка синхронизации', 'error');
+                    this.saveDataLocally(); // Save locally on error
+                } finally {
+                    this.syncInProgress = false;
+                }
+            }
+
+            // Setup real-time sync
+            setupRealtimeSync() {
+                if (!this.userId) return;
+
+                const userDocRef = firestoreDoc(db, 'users', this.userId);
+                
+                // Subscribe to document changes
+                this.unsubscribe = firestoreOnSnapshot(userDocRef, (doc) => {
+                    if (doc.exists() && !this.syncInProgress) {
+                        const userData = doc.data();
+                        const lastUpdated = userData.lastUpdated;
+                        const localLastUpdated = localStorage.getItem('lastLocalUpdate');
+                        
+                        // Update only if data is newer than local
+                        if (!localLastUpdated || lastUpdated > localLastUpdated) {
+                            this.data = userData.budgetData || this.getDefaultBudgetData();
+                            this.customCategories = userData.customCategories || { main: [], vacation: [] };
+                            this.baseCurrency = userData.settings?.baseCurrency || 'RUB';
+                            this.exchangeRates = userData.settings?.exchangeRates || this.exchangeRates;
+                            
+                            this.saveDataLocally();
+                            this.updateAllDisplays();
+                            this.populateCategories();
+                            
+                            this.showSyncStatus('Данные обновлены с другого устройства', 'info');
+                        }
+                    }
+                }, (error) => {
+                    console.error('Ошибка реального времени синхронизации:', error);
+                });
+            }
+
+            // Save local data (backup)
+            saveDataLocally() {
+                localStorage.setItem('budgetData_main', JSON.stringify(this.data.main));
+                localStorage.setItem('budgetData_vacation', JSON.stringify(this.data.vacation));
+                localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
+                localStorage.setItem('baseCurrency', this.baseCurrency);
+                localStorage.setItem('exchangeRates', JSON.stringify(this.exchangeRates));
+                localStorage.setItem('lastLocalUpdate', new Date().toISOString());
+            }
+
+            // Get default budget data
+            getDefaultBudgetData() {
+                return {
+                    main: this.getDefaultData(),
+                    vacation: this.getDefaultData()
+                };
+            }
+
+            // Show sync status
+            showSyncStatus(message, type) {
+                const statusEl = document.getElementById('backupStatus');
+                if (statusEl) {
+                    statusEl.className = `sync-status ${type}`;
+                    statusEl.textContent = message;
+                    
+                    // Automatically hide message after 3 seconds
+                    setTimeout(() => {
+                        if (statusEl.textContent === message) {
+                            statusEl.className = 'sync-status';
+                            statusEl.textContent = '✅ Автосохранение активно';
+                        }
+                    }, 3000);
+                }
+            }
+
+            // Cleanup subscriptions and timeouts
+            cleanup() {
+                if (this.unsubscribe) {
+                    this.unsubscribe();
+                }
+                clearTimeout(this.saveTimeout);
             }
 
             init() {
@@ -1594,9 +1770,6 @@
                     timestamp: new Date().toISOString()
                 };
                 localStorage.setItem('autoBackup', JSON.stringify(backupData));
-                
-                const statusEl = document.getElementById('backupStatus');
-                statusEl.textContent = `✅ Последнее сохранение: ${new Date().toLocaleTimeString()}`;
             }
 
             async updateExchangeRates() {
@@ -1641,7 +1814,7 @@
                             '⚠️ Используются сохранённые курсы';
                     } else {
                         document.getElementById('exchangeRateStatus').textContent = 
-                            '⌘ Ошибка загрузки курсов. Используются базовые значения.';
+                            '❌ Ошибка загрузки курсов. Используются базовые значения.';
                     }
                 }
             }
@@ -1688,9 +1861,13 @@
             }
 
             saveData(mode) {
-                localStorage.setItem(`budgetData_${mode}`, JSON.stringify(this.data[mode]));
-                localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
-                this.autoBackup();
+                this.saveDataLocally();
+                
+                // Save to cloud with small delay to group changes
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = setTimeout(() => {
+                    this.saveUserData();
+                }, 1000);
             }
 
             generateId() {
@@ -2148,37 +2325,34 @@
 
                 this.showAlert('Данные экспортированы!', 'success');
             }
+            
             exportToExcel() {
-    const modes = ['main', 'vacation'];
-    const wb = XLSX.utils.book_new(); // создаём новую книгу Excel
+                const modes = ['main', 'vacation'];
+                const wb = XLSX.utils.book_new();
 
-    modes.forEach(mode => {
-        const data = this.data[mode];
+                modes.forEach(mode => {
+                    const data = this.data[mode];
 
-        // шапка таблицы
-        const sheetData = [
-            ["Дата", "Категория", "Описание", "Сумма", "Валюта"]
-        ];
+                    const sheetData = [
+                        ["Дата", "Категория", "Описание", "Сумма", "Валюта"]
+                    ];
 
-        // добавляем строки
-        data.expenses.forEach(exp => {
-            sheetData.push([
-                exp.date,
-                exp.category,
-                exp.description || "",
-                exp.amount,
-                exp.currency
-            ]);
-        });
+                    data.expenses.forEach(exp => {
+                        sheetData.push([
+                            exp.date,
+                            exp.category,
+                            exp.description || "",
+                            exp.amount,
+                            exp.currency
+                        ]);
+                    });
 
-        // создаём лист
-        const ws = XLSX.utils.aoa_to_sheet(sheetData);
-        XLSX.utils.book_append_sheet(wb, ws, mode === "main" ? "Основной" : "Отпуск");
-    });
+                    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+                    XLSX.utils.book_append_sheet(wb, ws, mode === "main" ? "Основной" : "Отпуск");
+                });
 
-    // сохраняем файл
-    XLSX.writeFile(wb, `budget-report-${new Date().toISOString().split('T')[0]}.xlsx`);
-}
+                XLSX.writeFile(wb, `budget-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+            }
 
             exportToDoc() {
                 const modes = ['main', 'vacation'];
