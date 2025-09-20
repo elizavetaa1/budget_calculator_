@@ -1502,9 +1502,33 @@
         window.firestoreGetDoc = getDoc;
         window.firestoreOnSnapshot = onSnapshot;
 
+        // Добавляем обработчик ошибок
+        window.addEventListener('unhandledrejection', (event) => {
+            if (event.reason && event.reason.code && event.reason.code.includes('auth/')) {
+                console.log('Firebase auth error handled:', event.reason.code);
+                event.preventDefault();
+            }
+        });
+
+        // Проверка подключения к Firebase
+        async function checkFirebaseConnection() {
+            try {
+                const testDoc = doc(db, 'test', 'connection');
+                await getDoc(testDoc);
+                return true;
+            } catch (error) {
+                console.error('Firebase недоступен:', error);
+                return false;
+            }
+        }
+
         // Check auth state and initialize app
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
+                const firebaseAvailable = await checkFirebaseConnection();
+                if (!firebaseAvailable) {
+                    showAlert('Проблемы с подключением к серверу. Работаем в автономном режиме.', 'warning');
+                }
                 showMainApp(user);
             } else {
                 showAuthScreen();
@@ -1524,14 +1548,19 @@
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('userEmail').textContent = user.email;
             
-            // Initialize calculator
-            if (!window.calculator) {
-                window.calculator = new BudgetCalculator();
+            try {
+                if (!window.calculator) {
+                    window.calculator = new BudgetCalculator();
+                }
+                window.calculator.setUser(user);
+            } catch (error) {
+                console.error('Ошибка инициализации калькулятора:', error);
+                setTimeout(() => {
+                    showAlert('Проблема с инициализацией. Перезагрузите страницу.', 'warning');
+                }, 1000);
             }
-            // Set user and load user data
-            window.calculator.setUser(user);
         }
-
+       
         function updateAuthConnectionStatus() {
             const statusEl = document.getElementById('authConnectionStatus');
             if (navigator.onLine) {
