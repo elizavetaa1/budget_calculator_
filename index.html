@@ -1601,9 +1601,9 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    const registration = await navigator.serviceWorker.register('sw.js', {
-                        scope: '/'
-                    });
+                    const registration = await navigator.serviceWorker.register('./sw.js', {
+    scope: './budget_calculator_/'
+});
                     
                     console.log('ServiceWorker registered:', registration.scope);
                     

@@ -1,14 +1,14 @@
 const CACHE_NAME = 'budget-calculator-v2.1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  './',
+  './index.html',
+  './manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js'
 ];
 
 // Установка Service Worker
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+  console.log('SW installing with scope:', self.registration.scope);
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -68,7 +68,7 @@ self.addEventListener('fetch', (event) => {
       .catch(() => {
         // Офлайн fallback для навигационных запросов
         if (event.request.destination === 'document') {
-          return caches.match('/index.html');
+          return caches.match('./index.html');
         }
       })
   );
@@ -185,7 +185,7 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'open') {
     event.waitUntil(
-      clients.openWindow('/')
+      self.clients.openWindow('/')
     );
   } else if (event.action === 'close') {
     // Просто закрываем уведомление
@@ -193,7 +193,7 @@ self.addEventListener('notificationclick', (event) => {
   } else {
     // Клик по самому уведомлению
     event.waitUntil(
-      clients.openWindow('/')
+      self.clients.openWindow('/')
     );
   }
 });
