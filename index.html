@@ -1581,53 +1581,77 @@
             }
 
             // Set user and load user data from Firestore
-            setUser(user) {
-                this.userId = user.uid;
-                this.loadUserData();
-                this.setupRealtimeSync();
-            }
-
+            async setUser(user) {
+    this.userId = user.uid;
+    console.log('Setting user:', user.uid);
+    
+    try {
+        await this.startSync();
+        
+        // Принудительно обновляем отображение через секунду
+        setTimeout(() => {
+            this.updateAllDisplays();
+            console.log('Display updated after user login');
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error during user setup:', error);
+    }
+}
             // Load user data from Firestore
-            async loadUserData() {
-                if (!this.userId || !navigator.onLine) {
-                    this.loadData(); // Load local data
-                    return;
-                }
+            async loadCloudData() {
+    if (!this.userId) {
+        this.loadFromLocalStorage();
+        return;
+    }
 
-                try {
-                    this.showSyncStatus('Загрузка данных...', 'info');
-                    
-                    const userDocRef = firestoreDoc(db, 'users', this.userId);
-                    const userDoc = await firestoreGetDoc(userDocRef);
-                    
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        
-                        // Update local data with cloud data
-                        this.data = userData.budgetData || this.getDefaultBudgetData();
-                        this.customCategories = userData.customCategories || { main: [], vacation: [] };
-                        this.baseCurrency = userData.settings?.baseCurrency || 'RUB';
-                        this.exchangeRates = userData.settings?.exchangeRates || this.exchangeRates;
-                        
-                        // Save to localStorage as backup
-                        this.saveDataLocally();
-                        this.showSyncStatus('Данные синхронизированы', 'success');
-                        
-                    } else {
-                        // First time login - create user document
-                        await this.saveUserData();
-                        this.showSyncStatus('Создан новый профиль', 'success');
-                    }
-                    
-                    this.updateAllDisplays();
-                    this.populateCategories();
-                    
-                } catch (error) {
-                    console.error('Ошибка загрузки данных:', error);
-                    this.showSyncStatus('Ошибка синхронизации. Используются локальные данные', 'warning');
-                    this.loadData(); // Load local data on error
-                }
+    try {
+        console.log('Loading cloud data for user:', this.userId);
+        
+        const userDocRef = firestoreDoc(db, 'users', this.userId);
+        const userDoc = await firestoreGetDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+            const cloudData = userDoc.data();
+            console.log('Cloud data found:', cloudData);
+            
+            // Загружаем локальные данные для сравнения
+            this.loadFromLocalStorage();
+            
+            const cloudTimestamp = cloudData.lastUpdated || 0;
+            const localTimestamp = this.getLocalTimestamp();
+            
+            console.log('Comparing timestamps - Cloud:', new Date(cloudTimestamp), 'Local:', new Date(localTimestamp));
+            
+            // Используем более новые данные
+            if (cloudTimestamp > localTimestamp) {
+                console.log('Using cloud data (newer)');
+                this.applyCloudData(cloudData);
+                this.setLocalTimestamp(cloudTimestamp);
+            } else if (localTimestamp > cloudTimestamp) {
+                console.log('Using local data (newer), uploading to cloud');
+                await this.uploadToCloud();
+            } else {
+                console.log('Data is in sync');
+                this.applyCloudData(cloudData); // На всякий случай применяем облачные данные
             }
+        } else {
+            console.log('No cloud data found, uploading local data');
+            // Первый раз - загружаем локальные данные и отправляем в облако
+            this.loadFromLocalStorage();
+            await this.uploadToCloud();
+        }
+        
+        this.updateAllDisplays();
+        this.populateCategories();
+        
+    } catch (error) {
+        console.error('Ошибка загрузки из облака:', error);
+        this.loadFromLocalStorage();
+        this.showSyncMessage('Ошибка загрузки данных из облака', 'error');
+        throw error;
+    }
+}
 
             // Save user data to Firestore
             async saveUserData() {
