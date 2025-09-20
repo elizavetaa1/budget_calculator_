@@ -1603,8 +1603,8 @@ if ('serviceWorker' in navigator) {
         try {
             // Регистрируем Service Worker с правильной областью видимости
             const registration = await navigator.serviceWorker.register('./sw.js', {
-                scope: './'  // Исправлена область видимости
-            });
+    scope: './budget_calculator_/'
+});
             
             console.log('ServiceWorker registered successfully:', registration.scope);
             
@@ -2206,40 +2206,49 @@ window.addEventListener('beforeunload', () => {
 
             // Отправка данных в облако
             async uploadToCloud() {
-                if (!this.userId || !this.isOnline) {
-                    this.pendingChanges = true;
-                    return;
-                }
+    if (!this.userId || !this.isOnline) {
+        this.pendingChanges = true;
+        return;
+    }
 
-                try {
-                    const timestamp = Date.now();
-                    const userDocRef = firestoreDoc(db, 'users', this.userId);
-                    
-                    const cloudData = {
-                        budgetData: this.data,
-                        customCategories: this.customCategories,
-                        settings: {
-                            baseCurrency: this.baseCurrency,
-                            exchangeRates: this.exchangeRates
-                        },
-                        lastUpdated: timestamp,
-                        lastUpdatedBy: this.deviceId,
-                        version: 1
-                    };
+    try {
+        this.setSyncStatus('syncing');
+        
+        const timestamp = Date.now();
+        const userDocRef = firestoreDoc(db, 'users', this.userId);
+        
+        const cloudData = {
+            budgetData: this.data,
+            customCategories: this.customCategories,
+            settings: {
+                baseCurrency: this.baseCurrency,
+                exchangeRates: this.exchangeRates
+            },
+            lastUpdated: timestamp,
+            lastUpdatedBy: this.deviceId,
+            version: 1
+        };
 
-                    await firestoreSetDoc(userDocRef, cloudData);
-                    
-                    this.setLocalTimestamp(timestamp);
-                    this.pendingChanges = false;
-                    
-                    console.log('Данные успешно отправлены в облако');
-                    
-                } catch (error) {
-                    console.error('Ошибка отправки в облако:', error);
-                    this.pendingChanges = true;
-                    throw error;
-                }
-            }
+        await firestoreSetDoc(userDocRef, cloudData);
+        
+        this.setLocalTimestamp(timestamp);
+        this.pendingChanges = false;
+        this.setSyncStatus('connected');
+        
+        console.log('Данные успешно отправлены в облако');
+        
+    } catch (error) {
+        console.error('Ошибка отправки в облако:', error);
+        this.pendingChanges = true;
+        this.setSyncStatus('error');
+        
+        if (error.code !== 'permission-denied' && error.code !== 'unavailable') {
+            this.showSyncMessage('Ошибка синхронизации: ' + error.message, 'error');
+        }
+        
+        throw error;
+    }
+}
 
             // Загрузка ожидающих изменений
             async uploadPendingChanges() {
