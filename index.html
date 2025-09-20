@@ -1597,58 +1597,217 @@
             return messages[errorCode] || 'Произошла ошибка. Попробуйте снова.';
         }
 
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const registration = await navigator.serviceWorker.register('./sw.js', {
-    scope: './budget_calculator_/'
-});
+        // Улучшенная регистрация Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            // Регистрируем Service Worker с правильной областью видимости
+            const registration = await navigator.serviceWorker.register('./sw.js', {
+                scope: './'  // Исправлена область видимости
+            });
+            
+            console.log('ServiceWorker registered successfully:', registration.scope);
+            
+            // Обработка обновлений SW
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('New ServiceWorker installing...');
+                
+                newWorker.addEventListener('statechange', () => {
+                    console.log('ServiceWorker state changed to:', newWorker.state);
                     
-                    console.log('ServiceWorker registered:', registration.scope);
-                    
-                    // Обновление SW
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                showUpdateNotification();
-                            }
-                        });
-                    });
-                    
-                } catch (error) {
-                    console.log('ServiceWorker registration failed:', error);
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        showUpdateNotification();
+                    }
+                });
+            });
+
+            // Обработка активации нового SW
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    window.location.reload();
+                    refreshing = true;
                 }
             });
+
+            // Слушаем сообщения от Service Worker
+            navigator.serviceWorker.addEventListener('message', handleSWMessage);
+            
+        } catch (error) {
+            console.log('ServiceWorker registration failed:', error);
+            
+            // Уведомляем пользователя о проблемах с кешированием
+            setTimeout(() => {
+                showAlert('Приложение работает в ограниченном режиме. Некоторые функции могут быть недоступны оффлайн.', 'warning');
+            }, 3000);
         }
+    });
+}
+
+// Обработчик сообщений от Service Worker
+function handleSWMessage(event) {
+    console.log('Received message from SW:', event.data);
+    
+    const messageHandlers = {
+        'SW_ACTIVATED': () => {
+            console.log('Service Worker activated successfully');
+            updateSyncStatus('connected');
+        },
+        
+        'SYNC_REQUEST': () => {
+            console.log('Background sync requested by SW');
+            if (window.calculator) {
+                // Выполняем синхронизацию данных
+                window.calculator.performSync().catch(console.error);
+            }
+        },
+        
+        'SYNC_COMPLETED': () => {
+            console.log('Background sync completed');
+            if (window.calculator) {
+                window.calculator.showSyncMessage('Фоновая синхронизация завершена', 'success');
+            }
+        },
+        
+        'SYNC_ERROR': (data) => {
+            console.error('Background sync error:', data.error);
+            if (window.calculator) {
+                window.calculator.showSyncMessage('Ошибка фоновой синхронизации', 'error');
+            }
+        },
+        
+        'NOTIFICATION_CLICK': () => {
+            console.log('User clicked on notification');
+            // Можно добавить специальную логику для обработки кликов по уведомлениям
+        }
+    };
+    
+    if (event.data && event.data.type && messageHandlers[event.data.type]) {
+        messageHandlers[event.data.type](event.data);
+    }
+}
+
+// Функция для обновления статуса синхронизации (интеграция с основным приложением)
+function updateSyncStatus(status) {
+    if (window.calculator) {
+        window.calculator.setSyncStatus(status);
+    }
+}
+
+// Регистрация фоновой синхронизации
+async function registerBackgroundSync() {
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.sync.register('budget-sync');
+            console.log('Background sync registered successfully');
+        } catch (error) {
+            console.log('Background sync registration failed:', error);
+        }
+    }
+}
+
+// Автоматическая регистрация фоновой синхронизации при изменении данных
+function triggerBackgroundSync() {
+    registerBackgroundSync().catch(console.error);
+}
+
+// Обработка изменений сетевого статуса
+window.addEventListener('online', () => {
+    console.log('Network: online');
+    updateSyncStatus('connecting');
+    
+    // Запускаем фоновую синхронизацию при восстановлении соединения
+    setTimeout(triggerBackgroundSync, 1000);
+});
+
+window.addEventListener('offline', () => {
+    console.log('Network: offline');
+    updateSyncStatus('offline');
+});
+
+// Обработка перед закрытием страницы - запускаем фоновую синхронизацию
+window.addEventListener('beforeunload', () => {
+    if (window.calculator && window.calculator.pendingChanges) {
+        triggerBackgroundSync();
+    }
+});
 
         // Уведомление об обновлении
-        function showUpdateNotification() {
-            const updateBanner = document.createElement('div');
-            updateBanner.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: #2196f3;
-                color: white;
-                padding: 15px;
-                text-align: center;
-                z-index: 9999;
-                font-family: Arial, sans-serif;
-            `;
-            updateBanner.innerHTML = `
-                Доступно обновление приложения
-                <button onclick="window.location.reload()" style="margin-left: 10px; padding: 5px 10px; background: white; color: #2196f3; border: none; border-radius: 3px; cursor: pointer;">
-                    Обновить
+      function showUpdateNotification() {
+    // Проверяем, не показывали ли уже это уведомление
+    if (sessionStorage.getItem('updateNotificationShown')) {
+        return;
+    }
+    
+    sessionStorage.setItem('updateNotificationShown', 'true');
+    
+    const updateBanner = document.createElement('div');
+    updateBanner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+        color: white;
+        padding: 15px;
+        text-align: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Arial, sans-serif;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease-out;
+    `;
+    
+    updateBanner.innerHTML = `
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="flex: 1; min-width: 200px;">
+                <strong>Доступно обновление приложения</strong>
+                <div style="font-size: 14px; opacity: 0.9;">Новые возможности и исправления ошибок</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="updateNowBtn" style="padding: 8px 16px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    Обновить сейчас
                 </button>
-                <button onclick="this.parentElement.remove()" style="margin-left: 5px; padding: 5px 10px; background: transparent; color: white; border: 1px solid white; border-radius: 3px; cursor: pointer;">
+                <button id="updateLaterBtn" style="padding: 8px 16px; background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 4px; cursor: pointer;">
                     Позже
                 </button>
-            `;
-            document.body.prepend(updateBanner);
+            </div>
+        </div>
+    `;
+    
+    // Добавляем CSS анимацию
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.prepend(updateBanner);
+    
+    // Обработчики кнопок
+    document.getElementById('updateNowBtn').onclick = () => {
+        updateBanner.remove();
+        window.location.reload(true);
+    };
+    
+    document.getElementById('updateLaterBtn').onclick = () => {
+        updateBanner.remove();
+        if (window.showAlert) {
+            showAlert('Обновление будет применено при следующем перезапуске приложения', 'info');
+        }
+    };
+    
+    // Автоматически скрываем баннер через 30 секунд
+    setTimeout(() => {
+        if (document.body.contains(updateBanner)) {
+            updateBanner.remove();
+        }
+    }, 30000);
+}
 
         // PWA Install Logic
         let deferredPrompt;
