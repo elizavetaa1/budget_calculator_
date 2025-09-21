@@ -885,7 +885,7 @@
         
         <div class="tabs">
             <button class="tab active" onclick="switchTab('main')">📊 Основной</button>
-            <button class="tab" onclick="switchTab('vacation')">🖏️ Отпуск</button>
+            <button class="tab" onclick="switchTab('vacation')">🏖️ Отпуск</button>
             <button class="tab" onclick="switchTab('analytics')">📈 Аналитика</button>
             <button class="tab" onclick="switchTab('settings')">⚙️ Настройки</button>
         </div>
@@ -1328,27 +1328,50 @@
     <script>
         // Auth functions
         async function signIn() {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            
-            if (!email || !password) {
-                showAlert('Введите email и пароль', 'danger');
-                return;
-            }
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    
+    // ===== ДОБАВЬТЕ ЭТИ СТРОКИ =====
+    console.log('=== SIGN IN DEBUG ===');
+    console.log('Attempting sign in with email:', email);
+    console.log('Firebase config check:', {
+        hasAuth: !!auth,
+        hasDb: !!db,
+        authApp: auth?.app?.name
+    });
+    console.log('====================');
+    // ===== КОНЕЦ ДОБАВЛЯЕМОГО КОДА =====
+    
+    if (!email || !password) {
+        showAlert('Введите email и пароль', 'danger');
+        return;
+    }
 
-            try {
-                document.getElementById('loadingSpinner').style.display = 'block';
-                document.getElementById('authForm').style.display = 'none';
-                
-                await signInWithEmailAndPassword(auth, email, password);
-                showAlert('Вход выполнен успешно!', 'success');
-            } catch (error) {
-                console.error('Ошибка входа:', error);
-                showAlert(getErrorMessage(error.code), 'danger');
-                document.getElementById('loadingSpinner').style.display = 'none';
-                document.getElementById('authForm').style.display = 'block';
-            }
-        }
+    try {
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('authForm').style.display = 'none';
+        
+        // ===== И ЭТУ СТРОКУ ТОЖЕ =====
+        console.log('Calling signInWithEmailAndPassword...');
+        
+        await signInWithEmailAndPassword(auth, email, password);
+        showAlert('Вход выполнен успешно!', 'success');
+    } catch (error) {
+        console.error('Ошибка входа:', error);
+        
+        // ===== И ЭТИ СТРОКИ =====
+        console.log('Sign in error details:', {
+            code: error.code,
+            message: error.message,
+            stack: error.stack
+        });
+        // ===== КОНЕЦ =====
+        
+        showAlert(getErrorMessage(error.code), 'danger');
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('authForm').style.display = 'block';
+    }
+}
 
         async function signOut() {
             try {
@@ -1522,7 +1545,7 @@
             }, 500);
         }
 
-        // Modofied BudgetCalculator class with Firestore sync
+        // Modified BudgetCalculator class with Firestore sync
         class BudgetCalculator {
             constructor() {
                 this.currentTab = 'main';
@@ -1581,7 +1604,23 @@
             }
 
             // Set user and load user data from Firestore
-            async setUser(user) {
+            // Найдите этот метод в вашем коде (примерно строка 1500-1600)
+async setUser(user) {
+    // ===== ДОБАВЬТЕ ЭТИ СТРОКИ В НАЧАЛО МЕТОДА =====
+    console.log('=== AUTH DEBUG INFO ===');
+    console.log('User object:', user);
+    console.log('Auth state:', {
+        uid: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        isAnonymous: user.isAnonymous,
+        providerId: user.providerId
+    });
+    console.log('Firebase Auth instance:', auth);
+    console.log('Current auth user:', auth.currentUser);
+    console.log('=======================');
+    // ===== КОНЕЦ ДОБАВЛЯЕМОГО КОДА =====
+    
     this.userId = user.uid;
     console.log('Setting user:', user.uid);
     
@@ -1598,71 +1637,121 @@
         console.error('Error during user setup:', error);
     }
 }
-            // Load user data from Firestore
-            async loadCloudData() {
-    if (!this.userId) {
-        this.loadFromLocalStorage();
-        return;
-    }
 
-    try {
-        console.log('Loading cloud data for user:', this.userId);
-        
-        const userDocRef = firestoreDoc(db, 'users', this.userId);
-        const userDoc = await firestoreGetDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-            const cloudData = userDoc.data();
-            console.log('Cloud data found:', cloudData);
-            
-            // Загружаем локальные данные для сравнения
-            this.loadFromLocalStorage();
-            
-            const cloudTimestamp = cloudData.lastUpdated || 0;
-            const localTimestamp = this.getLocalTimestamp();
-            
-            console.log('Comparing timestamps - Cloud:', new Date(cloudTimestamp), 'Local:', new Date(localTimestamp));
-            
-            // Используем более новые данные
-            if (cloudTimestamp > localTimestamp) {
-                console.log('Using cloud data (newer)');
-                this.applyCloudData(cloudData);
-                this.setLocalTimestamp(cloudTimestamp);
-            } else if (localTimestamp > cloudTimestamp) {
-                console.log('Using local data (newer), uploading to cloud');
-                await this.uploadToCloud();
-            } else {
-                console.log('Data is in sync');
-                this.applyCloudData(cloudData); // На всякий случай применяем облачные данные
-            }
-        } else {
-            console.log('No cloud data found, uploading local data');
-            // Первый раз - загружаем локальные данные и отправляем в облако
-            this.loadFromLocalStorage();
-            await this.uploadToCloud();
-        }
-        
-        this.updateAllDisplays();
-        this.populateCategories();
-        
-    } catch (error) {
-        console.error('Ошибка загрузки из облака:', error);
-        this.loadFromLocalStorage();
-        this.showSyncMessage('Ошибка загрузки данных из облака', 'error');
-        throw error;
-    }
-}
-
-            // Save user data to Firestore
-            async saveUserData() {
-                if (!this.userId || this.syncInProgress) {
-                    this.saveDataLocally(); // Save locally if no connection
+            // Функция запуска синхронизации
+            async startSync() {
+                if (!this.userId) {
+                    console.log('No user ID, skipping sync');
                     return;
                 }
-
+                
                 try {
-                    this.syncInProgress = true;
-                    this.showSyncStatus('Синхронизация...', 'info');
+                    console.log('=== STARTING SYNC PROCESS ===');
+                    console.log('User ID:', this.userId);
+                    console.log('Online status:', navigator.onLine);
+                    console.log('Database:', window.db ? 'Available' : 'Not available');
+                    console.log('Auth:', window.auth ? 'Available' : 'Not available');
+                    
+                    this.showSyncStatus('Инициализация синхронизации...', 'info');
+                    
+                    // Проверяем доступность Firebase
+                    if (!window.db) {
+                        throw new Error('Firebase Firestore не инициализирован');
+                    }
+                    
+                    if (!window.firestoreDoc || !window.firestoreGetDoc) {
+                        throw new Error('Firebase функции недоступны');
+                    }
+                    
+                    // Загружаем данные из облака
+                    await this.loadCloudData();
+                    
+                    // Настраиваем реальную синхронизацию
+                    this.setupRealtimeSync();
+                    
+                    this.showSyncStatus('Синхронизация активна', 'success');
+                    console.log('=== SYNC STARTED SUCCESSFULLY ===');
+                    
+                } catch (error) {
+                    console.error('=== SYNC FAILED ===');
+                    console.error('Error details:', error);
+                    console.error('Error message:', error.message);
+                    console.error('Error stack:', error.stack);
+                    
+                    this.showSyncStatus('Ошибка синхронизации. Используются локальные данные', 'error');
+                    
+                    // Загружаем локальные данные как fallback
+                    this.loadFromLocalStorage();
+                    this.updateAllDisplays();
+                    this.populateCategories();
+                }
+            }
+
+            // Применение облачных данных
+            applyCloudData(cloudData) {
+                try {
+                    if (cloudData.budgetData) {
+                        this.data = cloudData.budgetData;
+                    }
+                    
+                    if (cloudData.customCategories) {
+                        this.customCategories = cloudData.customCategories;
+                    }
+                    
+                    if (cloudData.settings) {
+                        this.baseCurrency = cloudData.settings.baseCurrency || 'RUB';
+                        this.exchangeRates = cloudData.settings.exchangeRates || this.exchangeRates;
+                    }
+                    
+                    console.log('Cloud data applied successfully');
+                } catch (error) {
+                    console.error('Error applying cloud data:', error);
+                    throw error;
+                }
+            }
+
+            // Загрузка из локального хранилища
+            loadFromLocalStorage() {
+                try {
+                    this.data = {
+                        main: JSON.parse(localStorage.getItem('budgetData_main')) || this.getDefaultData(),
+                        vacation: JSON.parse(localStorage.getItem('budgetData_vacation')) || this.getDefaultData()
+                    };
+                    
+                    const storedCategories = localStorage.getItem('customCategories');
+                    if (storedCategories) {
+                        this.customCategories = JSON.parse(storedCategories);
+                    }
+                    
+                    const storedCurrency = localStorage.getItem('baseCurrency');
+                    if (storedCurrency) {
+                        this.baseCurrency = storedCurrency;
+                    }
+                    
+                    const storedRates = localStorage.getItem('exchangeRates');
+                    if (storedRates) {
+                        this.exchangeRates = JSON.parse(storedRates);
+                    }
+                    
+                    console.log('Local data loaded');
+                } catch (error) {
+                    console.error('Error loading local data:', error);
+                    // Используем данные по умолчанию
+                    this.data = this.getDefaultBudgetData();
+                }
+            }
+
+            // Отправка данных в облако
+            async uploadToCloud() {
+                if (!this.userId) {
+                    console.log('No user ID, cannot upload to cloud');
+                    return;
+                }
+                
+                try {
+                    console.log('=== UPLOADING TO CLOUD ===');
+                    console.log('User ID:', this.userId);
+                    console.log('Auth state:', window.auth?.currentUser ? 'Authenticated' : 'Not authenticated');
                     
                     const userDocRef = firestoreDoc(db, 'users', this.userId);
                     const userData = {
@@ -1675,61 +1764,352 @@
                         lastUpdated: new Date().toISOString()
                     };
                     
+                    console.log('Uploading data:', userData);
+                    
                     await firestoreSetDoc(userDocRef, userData, { merge: true });
+                    this.setLocalTimestamp(userData.lastUpdated);
                     
-                    // Also save locally
-                    this.saveDataLocally();
-                    this.showSyncStatus('Данные сохранены', 'success');
-                    
+                    console.log('=== UPLOAD SUCCESSFUL ===');
                 } catch (error) {
-                    console.error('Ошибка сохранения:', error);
-                    this.showSyncStatus('Ошибка синхронизации', 'error');
-                    this.saveDataLocally(); // Save locally on error
-                } finally {
-                    this.syncInProgress = false;
+                    console.error('=== UPLOAD FAILED ===');
+                    console.error('Error code:', error.code);
+                    console.error('Error message:', error.message);
+                    console.error('Full error:', error);
+                    
+                    if (error.code === 'permission-denied') {
+                        console.error('FIRESTORE RULES PROBLEM - Rules do not allow write access');
+                        console.error('Check Firebase Console → Firestore Database → Rules');
+                    }
+                    
+                    throw error;
                 }
             }
 
+            // Получение локальной временной метки
+            getLocalTimestamp() {
+                return localStorage.getItem('lastLocalUpdate') || '1970-01-01T00:00:00.000Z';
+            }
+
+            // Установка локальной временной метки
+            setLocalTimestamp(timestamp) {
+                localStorage.setItem('lastLocalUpdate', timestamp);
+            }
+
+            // Улучшенная функция показа статуса синхронизации
+            showSyncMessage(message, type) {
+                const statusEl = document.getElementById('backupStatus');
+                if (statusEl) {
+                    statusEl.className = `sync-status ${type}`;
+                    statusEl.textContent = message;
+                    
+                    // Автоматически скрываем сообщение через 5 секунд
+                    setTimeout(() => {
+                        if (statusEl.textContent === message) {
+                            statusEl.className = 'sync-status success';
+                            statusEl.textContent = '✅ Автосохранение активно';
+                        }
+                    }, 5000);
+                }
+            }
+
+            // Исправленные методы для синхронизации с Firebase
+
+// Метод для загрузки данных из облака
+async loadCloudData() {
+    if (!this.userId) {
+        console.log('No user ID, loading from local storage');
+        this.loadFromLocalStorage();
+        return;
+    }
+
+    try {
+        console.log('Loading cloud data for user:', this.userId);
+        this.showSyncStatus('Загрузка данных из облака...', 'info');
+        
+        const userDocRef = firestoreDoc(db, 'users', this.userId);
+        const userDoc = await firestoreGetDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+            const cloudData = userDoc.data();
+            console.log('Cloud data found:', cloudData);
+            
+            // Применяем данные из облака
+            this.applyCloudData(cloudData);
+            this.showSyncStatus('Данные загружены из облака', 'success');
+        } else {
+            console.log('No cloud data found, using local data');
+            this.loadFromLocalStorage();
+            // Загружаем локальные данные в облако
+            await this.uploadToCloud();
+        }
+        
+    } catch (error) {
+        console.error('Ошибка загрузки из облака:', error);
+        this.showSyncStatus('Ошибка синхронизации. Используются локальные данные', 'error');
+        this.loadFromLocalStorage();
+    }
+}
+
+// Метод для применения данных из облака
+applyCloudData(cloudData) {
+    if (cloudData.budgetData) {
+        this.data = cloudData.budgetData;
+    }
+    if (cloudData.customCategories) {
+        this.customCategories = cloudData.customCategories;
+    }
+    if (cloudData.settings) {
+        this.baseCurrency = cloudData.settings.baseCurrency || 'RUB';
+        this.exchangeRates = cloudData.settings.exchangeRates || this.exchangeRates;
+    }
+    
+    // Сохраняем локально как резерв
+    this.saveDataLocally();
+    this.setLocalTimestamp(cloudData.lastUpdated || Date.now());
+}
+
+// Метод для загрузки данных в облако
+async uploadToCloud() {
+    if (!this.userId) {
+        console.log('No user ID for upload');
+        return;
+    }
+
+    try {
+        console.log('Uploading data to cloud for user:', this.userId);
+        this.showSyncStatus('Сохранение в облако...', 'info');
+        
+        const userData = {
+            budgetData: this.data,
+            customCategories: this.customCategories,
+            settings: {
+                baseCurrency: this.baseCurrency,
+                exchangeRates: this.exchangeRates
+            },
+            lastUpdated: Date.now()
+        };
+        
+        const userDocRef = firestoreDoc(db, 'users', this.userId);
+        await firestoreSetDoc(userDocRef, userData);
+        
+        this.setLocalTimestamp(userData.lastUpdated);
+        this.showSyncStatus('Данные сохранены в облако', 'success');
+        
+    } catch (error) {
+        console.error('Ошибка загрузки в облако:', error);
+        this.showSyncStatus('Ошибка сохранения в облако', 'error');
+        throw error;
+    }
+}
+
+// Метод для настройки синхронизации
+async startSync() {
+    if (!this.userId) return;
+    
+    try {
+        // Загружаем данные
+        await this.loadCloudData();
+        
+        // Настраиваем реальное время синхронизацию
+        this.setupRealtimeSync();
+        
+        // Обновляем отображение
+        this.updateAllDisplays();
+        this.populateCategories();
+        
+    } catch (error) {
+        console.error('Error starting sync:', error);
+        this.showSyncStatus('Ошибка инициализации синхронизации', 'error');
+    }
+}
+
+// Исправленный метод setupRealtimeSync
+setupRealtimeSync() {
+    if (!this.userId) return;
+
+    // Отписываемся от предыдущего слушателя
+    if (this.unsubscribe) {
+        this.unsubscribe();
+    }
+
+    const userDocRef = firestoreDoc(db, 'users', this.userId);
+    
+    this.unsubscribe = firestoreOnSnapshot(userDocRef, (doc) => {
+        // Игнорируем изменения во время синхронизации
+        if (this.syncInProgress) return;
+        
+        if (doc.exists()) {
+            const userData = doc.data();
+            const cloudTimestamp = userData.lastUpdated || 0;
+            const localTimestamp = this.getLocalTimestamp();
+            
+            // Обновляем только если облачные данные новее
+            if (cloudTimestamp > localTimestamp) {
+                console.log('Applying real-time sync update');
+                this.applyCloudData(userData);
+                this.updateAllDisplays();
+                this.populateCategories();
+                this.showSyncStatus('Данные обновлены с другого устройства', 'info');
+            }
+        }
+    }, (error) => {
+        console.error('Real-time sync error:', error);
+        this.showSyncStatus('Ошибка реального времени синхронизации', 'error');
+    });
+}
+
+// Методы для работы с временными метками
+getLocalTimestamp() {
+    return parseInt(localStorage.getItem('lastCloudSync') || '0');
+}
+
+setLocalTimestamp(timestamp) {
+    localStorage.setItem('lastCloudSync', timestamp.toString());
+}
+
+// Загрузка из локального хранилища
+loadFromLocalStorage() {
+    try {
+        const mainData = localStorage.getItem('budgetData_main');
+        const vacationData = localStorage.getItem('budgetData_vacation');
+        const customCategories = localStorage.getItem('customCategories');
+        const baseCurrency = localStorage.getItem('baseCurrency');
+        const exchangeRates = localStorage.getItem('exchangeRates');
+
+        this.data = {
+            main: mainData ? JSON.parse(mainData) : this.getDefaultData(),
+            vacation: vacationData ? JSON.parse(vacationData) : this.getDefaultData()
+        };
+        
+        if (customCategories) {
+            this.customCategories = JSON.parse(customCategories);
+        }
+        
+        if (baseCurrency) {
+            this.baseCurrency = baseCurrency;
+        }
+        
+        if (exchangeRates) {
+            this.exchangeRates = JSON.parse(exchangeRates);
+        }
+        
+        console.log('Local data loaded successfully');
+    } catch (error) {
+        console.error('Error loading local data:', error);
+        this.data = this.getDefaultBudgetData();
+    }
+}
+
+// Метод saveUserData с дополнительной обработкой ошибок
+async saveUserData() {
+    if (!this.userId) {
+        this.saveDataLocally();
+        return;
+    }
+
+    // Предотвращаем множественные одновременные сохранения
+    if (this.syncInProgress) {
+        return;
+    }
+
+    try {
+        this.syncInProgress = true;
+        await this.uploadToCloud();
+        
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        this.saveDataLocally(); // Сохраняем локально при ошибке
+        
+        // Показываем конкретную ошибку
+        if (error.code === 'permission-denied') {
+            this.showSyncStatus('Нет прав доступа. Проверьте правила Firestore', 'error');
+        } else if (error.code === 'unavailable') {
+            this.showSyncStatus('Сервис недоступен. Попробуйте позже', 'error');
+        } else {
+            this.showSyncStatus('Ошибка синхронизации: ' + error.message, 'error');
+        }
+    } finally {
+        this.syncInProgress = false;
+    }
+}
+
             // Setup real-time sync
             setupRealtimeSync() {
-                if (!this.userId) return;
+                if (!this.userId) {
+                    console.log('No user ID for real-time sync');
+                    return;
+                }
+
+                // Отписываемся от предыдущего слушателя
+                if (this.unsubscribe) {
+                    this.unsubscribe();
+                }
 
                 const userDocRef = firestoreDoc(db, 'users', this.userId);
                 
-                // Subscribe to document changes
                 this.unsubscribe = firestoreOnSnapshot(userDocRef, (doc) => {
-                    if (doc.exists() && !this.syncInProgress) {
-                        const userData = doc.data();
-                        const lastUpdated = userData.lastUpdated;
-                        const localLastUpdated = localStorage.getItem('lastLocalUpdate');
-                        
-                        // Update only if data is newer than local
-                        if (!localLastUpdated || lastUpdated > localLastUpdated) {
-                            this.data = userData.budgetData || this.getDefaultBudgetData();
-                            this.customCategories = userData.customCategories || { main: [], vacation: [] };
-                            this.baseCurrency = userData.settings?.baseCurrency || 'RUB';
-                            this.exchangeRates = userData.settings?.exchangeRates || this.exchangeRates;
-                            
-                            this.saveDataLocally();
-                            this.updateAllDisplays();
-                            this.populateCategories();
-                            
-                            this.showSyncStatus('Данные обновлены с другого устройства', 'info');
-                        }
+                    if (!doc.exists()) {
+                        console.log('User document does not exist');
+                        return;
                     }
+                    
+                    // Избегаем зацикливания обновлений
+                    if (this.syncInProgress) {
+                        console.log('Sync in progress, skipping real-time update');
+                        return;
+                    }
+                    
+                    const userData = doc.data();
+                    const cloudTimestamp = userData.lastUpdated;
+                    const localTimestamp = this.getLocalTimestamp();
+                    
+                    // Обновляем только если облачные данные новее
+                    if (cloudTimestamp && cloudTimestamp > localTimestamp) {
+                        console.log('Applying real-time update from cloud');
+                        
+                        this.applyCloudData(userData);
+                        this.setLocalTimestamp(cloudTimestamp);
+                        
+                        // Сохраняем локально
+                        this.saveDataLocally();
+                        
+                        // Обновляем UI
+                        this.updateAllDisplays();
+                        this.populateCategories();
+                        
+                        this.showSyncStatus('Данные обновлены с другого устройства', 'info');
+                    }
+                    
                 }, (error) => {
-                    console.error('Ошибка реального времени синхронизации:', error);
+                    console.error('Real-time sync error:', error);
+                    this.showSyncStatus('Ошибка real-time синхронизации', 'error');
                 });
             }
 
             // Save local data (backup)
             saveDataLocally() {
-                localStorage.setItem('budgetData_main', JSON.stringify(this.data.main));
-                localStorage.setItem('budgetData_vacation', JSON.stringify(this.data.vacation));
-                localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
-                localStorage.setItem('baseCurrency', this.baseCurrency);
-                localStorage.setItem('exchangeRates', JSON.stringify(this.exchangeRates));
-                localStorage.setItem('lastLocalUpdate', new Date().toISOString());
+                try {
+                    // Убеждаемся что данные существуют
+                    if (!this.data) {
+                        this.data = this.getDefaultBudgetData();
+                    }
+                    
+                    if (!this.customCategories) {
+                        this.customCategories = { main: [], vacation: [] };
+                    }
+
+                    localStorage.setItem('budgetData_main', JSON.stringify(this.data.main || this.getDefaultData()));
+                    localStorage.setItem('budgetData_vacation', JSON.stringify(this.data.vacation || this.getDefaultData()));
+                    localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
+                    localStorage.setItem('baseCurrency', this.baseCurrency || 'RUB');
+                    localStorage.setItem('exchangeRates', JSON.stringify(this.exchangeRates || {}));
+                    localStorage.setItem('lastLocalUpdate', new Date().toISOString());
+                    
+                    console.log('Data saved locally successfully');
+                } catch (error) {
+                    console.error('Error saving data locally:', error);
+                    this.showAlert('Ошибка сохранения локальных данных', 'danger');
+                }
             }
 
             // Get default budget data
@@ -1766,7 +2146,7 @@
             }
 
             init() {
-                this.loadData();
+                this.loadFromLocalStorage();
                 this.loadSettings();
                 this.updateAllDisplays();
                 this.setDefaultDates();
@@ -1862,13 +2242,6 @@
                 endDate.setDate(endDate.getDate() + 30);
                 document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
                 document.getElementById('endDateVacation').value = endDate.toISOString().split('T')[0];
-            }
-
-            loadData() {
-                this.data = {
-                    main: JSON.parse(localStorage.getItem('budgetData_main')) || this.getDefaultData(),
-                    vacation: JSON.parse(localStorage.getItem('budgetData_vacation')) || this.getDefaultData()
-                };
             }
 
             getDefaultData() {
