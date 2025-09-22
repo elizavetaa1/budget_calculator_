@@ -1367,7 +1367,7 @@
         window.addEventListener('offline', updateConnectionStatus);
         updateConnectionStatus();
 
-        // Modified BudgetCalculator class with improved Firebase sync
+        // ИСПРАВЛЕННЫЙ BudgetCalculator class
         class BudgetCalculator {
             constructor() {
                 this.currentTab = 'main';
@@ -1413,7 +1413,7 @@
                         { name: 'Другое', icon: '📦' }
                     ]
                 };
-                this.customCategories = JSON.parse(localStorage.getItem('customCategories')) || { main: [], vacation: [] };
+                this.customCategories = { main: [], vacation: [] };
                 this.categoryChart = null;
                 this.timeChart = null;
                 this.isOnline = navigator.onLine;
@@ -1421,9 +1421,14 @@
                 this.unsubscribe = null;
                 this.saveTimeout = null;
                 this.syncRetryTimeout = null;
-                this.init();
-                this.startAutoBackup();
-                this.updateExchangeRates();
+                
+                // Инициализация данных по умолчанию
+                this.data = {
+                    main: this.getDefaultData(),
+                    vacation: this.getDefaultData()
+                };
+                
+                // НЕ вызываем init() здесь - он будет вызван после установки пользователя
             }
 
             // Set user and load user data from Firestore
@@ -1433,6 +1438,9 @@
                 console.log('User email:', user.email);
                 
                 this.userId = user.uid;
+                
+                // Инициализируем приложение
+                this.init();
                 
                 try {
                     // Подождем немного чтобы Firebase полностью инициализировался
@@ -1456,7 +1464,7 @@
                 }
             }
 
-            // Функция запуска синхронизации
+            // ИСПРАВЛЕННАЯ Функция запуска синхронизации
             async startSync() {
                 if (!this.userId) {
                     console.log('No user ID, skipping sync');
@@ -1503,7 +1511,7 @@
                 }
             }
 
-            // Метод для загрузки данных из облака
+            // ИСПРАВЛЕННЫЙ Метод для загрузки данных из облака
             async loadCloudData() {
                 if (!this.userId) {
                     console.log('No user ID, loading from local storage');
@@ -1549,15 +1557,26 @@
                 }
             }
 
-            // Метод для применения данных из облака
+            // ИСПРАВЛЕННЫЙ Метод для применения данных из облака
             applyCloudData(cloudData) {
                 try {
+                    console.log('Applying cloud data:', cloudData);
+                    
                     if (cloudData.budgetData) {
-                        this.data = cloudData.budgetData;
+                        // Убеждаемся, что структура данных корректная
+                        this.data = {
+                            main: cloudData.budgetData.main || this.getDefaultData(),
+                            vacation: cloudData.budgetData.vacation || this.getDefaultData()
+                        };
                     }
+                    
                     if (cloudData.customCategories) {
-                        this.customCategories = cloudData.customCategories;
+                        this.customCategories = {
+                            main: cloudData.customCategories.main || [],
+                            vacation: cloudData.customCategories.vacation || []
+                        };
                     }
+                    
                     if (cloudData.settings) {
                         this.baseCurrency = cloudData.settings.baseCurrency || 'RUB';
                         this.exchangeRates = cloudData.settings.exchangeRates || this.exchangeRates;
@@ -1567,6 +1586,10 @@
                     this.saveDataLocally();
                     this.setLocalTimestamp(cloudData.lastUpdated || Date.now());
                     
+                    // Обновляем UI
+                    this.updateAllDisplays();
+                    this.populateCategories();
+                    
                     console.log('Cloud data applied successfully');
                 } catch (error) {
                     console.error('Error applying cloud data:', error);
@@ -1574,7 +1597,7 @@
                 }
             }
 
-            // Метод для загрузки данных в облако
+            // ИСПРАВЛЕННЫЙ Метод для загрузки данных в облако
             async uploadToCloud() {
                 if (!this.userId) {
                     console.log('No user ID for upload');
@@ -1616,7 +1639,7 @@
                 }
             }
 
-            // Setup real-time sync
+            // ИСПРАВЛЕННЫЙ Setup real-time sync
             setupRealtimeSync() {
                 if (!this.userId) {
                     console.log('No user ID for real-time sync');
@@ -1653,10 +1676,6 @@
                             
                             this.applyCloudData(userData);
                             
-                            // Обновляем UI
-                            this.updateAllDisplays();
-                            this.populateCategories();
-                            
                             this.showSyncStatus('Данные обновлены с другого устройства', 'info');
                         }
                         
@@ -1681,7 +1700,7 @@
                 localStorage.setItem('lastCloudSync', timestamp.toString());
             }
 
-            // Загрузка из локального хранилища
+            // ИСПРАВЛЕННАЯ Загрузка из локального хранилища
             loadFromLocalStorage() {
                 try {
                     const mainData = localStorage.getItem('budgetData_main');
@@ -1710,11 +1729,14 @@
                     console.log('Local data loaded successfully');
                 } catch (error) {
                     console.error('Error loading local data:', error);
-                    this.data = this.getDefaultBudgetData();
+                    this.data = {
+                        main: this.getDefaultData(),
+                        vacation: this.getDefaultData()
+                    };
                 }
             }
 
-            // Метод saveUserData с дополнительной обработкой ошибок
+            // ИСПРАВЛЕННЫЙ Метод saveUserData с дополнительной обработкой ошибок
             async saveUserData() {
                 if (!this.userId) {
                     this.saveDataLocally();
@@ -1723,6 +1745,7 @@
 
                 // Предотвращаем множественные одновременные сохранения
                 if (this.syncInProgress) {
+                    console.log('Sync already in progress, skipping');
                     return;
                 }
 
@@ -1747,12 +1770,15 @@
                 }
             }
 
-            // Save local data (backup)
+            // ИСПРАВЛЕННЫЙ Save local data (backup)
             saveDataLocally() {
                 try {
                     // Убеждаемся что данные существуют
                     if (!this.data) {
-                        this.data = this.getDefaultBudgetData();
+                        this.data = {
+                            main: this.getDefaultData(),
+                            vacation: this.getDefaultData()
+                        };
                     }
                     
                     if (!this.customCategories) {
@@ -1771,14 +1797,6 @@
                     console.error('Error saving data locally:', error);
                     this.showAlert('Ошибка сохранения локальных данных', 'danger');
                 }
-            }
-
-            // Get default budget data
-            getDefaultBudgetData() {
-                return {
-                    main: this.getDefaultData(),
-                    vacation: this.getDefaultData()
-                };
             }
 
             // Show sync status
@@ -1808,12 +1826,21 @@
             }
 
             init() {
+                // Загружаем настройки и данные
                 this.loadFromLocalStorage();
                 this.loadSettings();
-                this.updateAllDisplays();
+                
+                // Обновляем интерфейс
                 this.setDefaultDates();
                 this.populateCategories();
+                this.updateAllDisplays();
+                
+                // Запускаем автобэкап
+                this.startAutoBackup();
                 this.requestNotificationPermission();
+                
+                // Обновляем курсы валют
+                this.updateExchangeRates();
             }
 
             requestNotificationPermission() {
@@ -1880,7 +1907,7 @@
                             '⚠️ Используются сохранённые курсы';
                     } else {
                         document.getElementById('exchangeRateStatus').textContent = 
-                            '⌀ Ошибка загрузки курсов. Используются базовые значения.';
+                            '❌ Ошибка загрузки курсов. Используются базовые значения.';
                     }
                 }
             }
@@ -1952,30 +1979,41 @@
                     const categorySelect = document.getElementById(`expenseCategory${suffix}`);
                     const filterSelect = document.getElementById(`filterCategory${suffix}`);
                     
-                    categorySelect.innerHTML = '';
-                    filterSelect.innerHTML = '<option value="">Все категории</option>';
+                    if (categorySelect) {
+                        categorySelect.innerHTML = '';
+                        categories.forEach(cat => {
+                            const option = new Option(`${cat.icon} ${cat.name}`, cat.name);
+                            categorySelect.appendChild(option);
+                        });
+                    }
                     
-                    categories.forEach(cat => {
-                        const option = new Option(`${cat.icon} ${cat.name}`, cat.name);
-                        categorySelect.appendChild(option.cloneNode(true));
-                        filterSelect.appendChild(option);
-                    });
+                    if (filterSelect) {
+                        filterSelect.innerHTML = '<option value="">Все категории</option>';
+                        categories.forEach(cat => {
+                            const option = new Option(`${cat.icon} ${cat.name}`, cat.name);
+                            filterSelect.appendChild(option);
+                        });
+                    }
                 });
 
                 const editCategorySelect = document.getElementById('editCategory');
-                editCategorySelect.innerHTML = '';
-                const allCategories = [...this.getAllCategories('main'), ...this.getAllCategories('vacation')];
-                const uniqueCategories = allCategories.filter((cat, index, self) => 
-                    self.findIndex(c => c.name === cat.name) === index
-                );
-                
-                uniqueCategories.forEach(cat => {
-                    editCategorySelect.appendChild(new Option(`${cat.icon} ${cat.name}`, cat.name));
-                });
+                if (editCategorySelect) {
+                    editCategorySelect.innerHTML = '';
+                    const allCategories = [...this.getAllCategories('main'), ...this.getAllCategories('vacation')];
+                    const uniqueCategories = allCategories.filter((cat, index, self) => 
+                        self.findIndex(c => c.name === cat.name) === index
+                    );
+                    
+                    uniqueCategories.forEach(cat => {
+                        editCategorySelect.appendChild(new Option(`${cat.icon} ${cat.name}`, cat.name));
+                    });
+                }
             }
 
             updateCategoriesList() {
                 const listEl = document.getElementById('categoriesList');
+                if (!listEl) return;
+                
                 let html = '';
                 
                 ['main', 'vacation'].forEach(mode => {
@@ -2271,7 +2309,10 @@
                     </div>
                 `;
 
-                document.getElementById(`${mode}Summary`).innerHTML = summaryHtml;
+                const summaryElement = document.getElementById(`${mode}Summary`);
+                if (summaryElement) {
+                    summaryElement.innerHTML = summaryHtml;
+                }
             }
 
             updateProgress(mode) {
@@ -2283,20 +2324,24 @@
                 const percentage = Math.min((totalSpent / data.budget.total) * 100, 100);
                 
                 const progressBar = document.getElementById(`${mode}Progress`);
-                progressBar.style.width = `${percentage}%`;
-                
-                if (percentage > 90) {
-                    progressBar.style.background = 'linear-gradient(90deg, #f44336, #d32f2f)';
-                } else if (percentage > 70) {
-                    progressBar.style.background = 'linear-gradient(90deg, #ff9800, #f57c00)';
-                } else {
-                    progressBar.style.background = 'linear-gradient(90deg, #4caf50, #8bc34a)';
+                if (progressBar) {
+                    progressBar.style.width = `${percentage}%`;
+                    
+                    if (percentage > 90) {
+                        progressBar.style.background = 'linear-gradient(90deg, #f44336, #d32f2f)';
+                    } else if (percentage > 70) {
+                        progressBar.style.background = 'linear-gradient(90deg, #ff9800, #f57c00)';
+                    } else {
+                        progressBar.style.background = 'linear-gradient(90deg, #4caf50, #8bc34a)';
+                    }
                 }
             }
 
             updateExpenseList(mode) {
                 const expenses = this.getFilteredExpenses(mode);
                 const listContainer = document.getElementById(`${mode}ExpenseList`);
+                
+                if (!listContainer) return;
                 
                 if (expenses.length === 0) {
                     listContainer.innerHTML = '<p style="text-align: center; color: #666;">Нет трат для отображения</p>';
@@ -2331,15 +2376,15 @@
             getFilteredExpenses(mode) {
                 let expenses = [...this.data[mode].expenses];
                 
-                const dateFilter = document.getElementById(`filterDate${mode === 'vacation' ? 'Vacation' : ''}`).value;
-                const categoryFilter = document.getElementById(`filterCategory${mode === 'vacation' ? 'Vacation' : ''}`).value;
-
-                if (dateFilter) {
-                    expenses = expenses.filter(expense => expense.date === dateFilter);
+                const dateFilter = document.getElementById(`filterDate${mode === 'vacation' ? 'Vacation' : ''}`);
+                const categoryFilter = document.getElementById(`filterCategory${mode === 'vacation' ? 'Vacation' : ''}`);
+                
+                if (dateFilter && dateFilter.value) {
+                    expenses = expenses.filter(expense => expense.date === dateFilter.value);
                 }
 
-                if (categoryFilter) {
-                    expenses = expenses.filter(expense => expense.category === categoryFilter);
+                if (categoryFilter && categoryFilter.value) {
+                    expenses = expenses.filter(expense => expense.category === categoryFilter.value);
                 }
 
                 return expenses.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -2350,8 +2395,12 @@
             }
 
             clearFilters(mode) {
-                document.getElementById(`filterDate${mode === 'vacation' ? 'Vacation' : ''}`).value = '';
-                document.getElementById(`filterCategory${mode === 'vacation' ? 'Vacation' : ''}`).value = '';
+                const dateFilter = document.getElementById(`filterDate${mode === 'vacation' ? 'Vacation' : ''}`);
+                const categoryFilter = document.getElementById(`filterCategory${mode === 'vacation' ? 'Vacation' : ''}`);
+                
+                if (dateFilter) dateFilter.value = '';
+                if (categoryFilter) categoryFilter.value = '';
+                
                 this.updateExpenseList(mode);
             }
 
@@ -2501,7 +2550,7 @@
                     customCategories: this.customCategories,
                     baseCurrency: this.baseCurrency,
                     exchangeRates: this.exchangeRates,
-                    version: '2.1',
+                    version: '2.2',
                     timestamp: new Date().toISOString()
                 };
 
@@ -2564,8 +2613,9 @@
 
             importData(mode) {
                 const fileInput = document.getElementById(`importFile${mode === 'vacation' ? 'Vacation' : ''}`);
+                if (!fileInput) return;
+                
                 const file = fileInput.files[0];
-
                 if (!file) return;
 
                 const reader = new FileReader();
@@ -2649,7 +2699,10 @@
                         `;
                     }).join('');
 
-                document.getElementById('categoryAnalytics').innerHTML = categoryCards || '<p>Нет данных для анализа</p>';
+                const analyticsElement = document.getElementById('categoryAnalytics');
+                if (analyticsElement) {
+                    analyticsElement.innerHTML = categoryCards || '<p>Нет данных для анализа</p>';
+                }
             }
 
             createCharts(expenses, mode) {
@@ -2671,13 +2724,16 @@
                     '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
                 ];
 
-                const ctx = document.getElementById('categoryChart').getContext('2d');
+                const ctx = document.getElementById('categoryChart');
+                if (!ctx) return;
+                
+                const canvasContext = ctx.getContext('2d');
                 
                 if (this.categoryChart) {
                     this.categoryChart.destroy();
                 }
 
-                this.categoryChart = new Chart(ctx, {
+                this.categoryChart = new Chart(canvasContext, {
                     type: 'pie',
                     data: {
                         labels: labels,
@@ -2721,13 +2777,16 @@
                 const sortedDates = Object.keys(dailyTotals).sort();
                 const data = sortedDates.map(date => dailyTotals[date]);
 
-                const ctx = document.getElementById('timeChart').getContext('2d');
+                const ctx = document.getElementById('timeChart');
+                if (!ctx) return;
+                
+                const canvasContext = ctx.getContext('2d');
                 
                 if (this.timeChart) {
                     this.timeChart.destroy();
                 }
 
-                this.timeChart = new Chart(ctx, {
+                this.timeChart = new Chart(canvasContext, {
                     type: 'line',
                     data: {
                         labels: sortedDates.map(date => new Date(date).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' })),
@@ -2790,7 +2849,9 @@
             document.getElementById(`${tab}Tab`).classList.remove('hidden');
             const tabButtons = document.querySelectorAll('.tab');
             const tabIndex = { main: 0, vacation: 1, analytics: 2, settings: 3 }[tab];
-            tabButtons[tabIndex].classList.add('active');
+            if (tabButtons[tabIndex]) {
+                tabButtons[tabIndex].classList.add('active');
+            }
             
             if (window.calculator) {
                 window.calculator.currentTab = tab;
@@ -2807,12 +2868,14 @@
             const section = document.getElementById(sectionId);
             const button = document.querySelector(`[onclick="toggleSection('${sectionId}')"]`);
             
-            if (section.classList.contains('active')) {
-                section.classList.remove('active');
-                button.classList.remove('active');
-            } else {
-                section.classList.add('active');
-                button.classList.add('active');
+            if (section && button) {
+                if (section.classList.contains('active')) {
+                    section.classList.remove('active');
+                    button.classList.remove('active');
+                } else {
+                    section.classList.add('active');
+                    button.classList.add('active');
+                }
             }
         }
 
@@ -2896,7 +2959,7 @@
         document.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 const authContainer = document.getElementById('authContainer');
-                if (authContainer.style.display !== 'none') {
+                if (authContainer && authContainer.style.display !== 'none') {
                     signIn();
                 }
             }
