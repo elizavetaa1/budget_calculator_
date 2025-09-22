@@ -1521,9 +1521,19 @@
 
                 try {
                     console.log('Loading cloud data for user:', this.userId);
+                    console.log('Current user auth status:', window.auth.currentUser);
                     this.showSyncStatus('Загрузка данных из облака...', 'info');
                     
+                    // Проверяем токен аутентификации
+                    if (window.auth.currentUser) {
+                        const token = await window.auth.currentUser.getIdToken();
+                        console.log('Auth token present:', token ? 'Yes' : 'No');
+                        console.log('Token length:', token ? token.length : 0);
+                    }
+                    
                     const userDocRef = firestoreDoc(db, 'users', this.userId);
+                    console.log('Document reference created for path: users/' + this.userId);
+                    
                     const userDoc = await firestoreGetDoc(userDocRef);
                     
                     if (userDoc.exists()) {
@@ -1543,13 +1553,29 @@
                     
                 } catch (error) {
                     console.error('Ошибка загрузки из облака:', error);
+                    console.error('Error code:', error.code);
+                    console.error('Error message:', error.message);
+                    console.error('Auth state:', window.auth.currentUser ? 'Authenticated' : 'Not authenticated');
                     
                     if (error.code === 'permission-denied') {
-                        this.showSyncStatus('Нет прав доступа к облачным данным', 'error');
+                        this.showSyncStatus('Нет прав доступа. Проверьте правила Firestore', 'error');
+                        
+                        // Дополнительная диагностика для permission-denied
+                        if (window.auth.currentUser) {
+                            console.log('User is authenticated but permission denied');
+                            console.log('User UID:', window.auth.currentUser.uid);
+                            console.log('Document path:', 'users/' + this.userId);
+                            console.log('UID match:', window.auth.currentUser.uid === this.userId ? 'Yes' : 'No');
+                        } else {
+                            console.log('User is not authenticated - this is the problem');
+                        }
+                        
                     } else if (error.code === 'unavailable') {
                         this.showSyncStatus('Сервис временно недоступен', 'error');
+                    } else if (error.code === 'unauthenticated') {
+                        this.showSyncStatus('Ошибка аутентификации. Перезайдите в аккаунт', 'error');
                     } else {
-                        this.showSyncStatus('Ошибка подключения к облаку', 'error');
+                        this.showSyncStatus('Ошибка подключения к облаку: ' + error.code, 'error');
                     }
                     
                     this.loadFromLocalStorage();
