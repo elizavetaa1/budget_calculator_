@@ -1023,6 +1023,10 @@
                     <input type="file" id="importFile" accept=".json" onchange="importData('main')" style="display: none;">
                 </label>
                 <button class="danger" onclick="clearAllData('main')">🗑️ Очистить всё</button>
+                <h2>Архив периодов</h2>
+<button class="secondary" onclick="window.calculator.viewArchives()">
+    📚 Просмотреть архив
+</button>
             </div>
         </div>
 
@@ -1367,7 +1371,7 @@
         window.addEventListener('offline', updateConnectionStatus);
         updateConnectionStatus();
 
-        // ИСПРАВЛЕННЫЙ BudgetCalculator class
+        // BudgetCalculator class
         class BudgetCalculator {
             constructor() {
                 this.currentTab = 'main';
@@ -1430,6 +1434,147 @@
                 
                 // НЕ вызываем init() здесь - он будет вызван после установки пользователя
             }
+            // 1. Проверка окончания периода
+    checkBudgetPeriodExpired(mode) {
+        const budget = this.data[mode].budget;
+        if (!budget.endDate) return false;
+
+        const endDate = new Date(budget.endDate);
+        const today = new Date();
+        endDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+
+        return today > endDate;
+    }
+
+    // 2. Автоматический сброс
+    autoResetIfExpired(mode) {
+        if (!this.checkBudgetPeriodExpired(mode)) return false;
+
+        this.archiveExpiredPeriod(mode);
+        this.data[mode].expenses = [];
+
+        this.saveData(mode);
+        this.updateDisplay(mode);
+
+        this.showAlert(
+            `Период бюджета завершен. Данные ${mode === 'main' ? 'основного бюджета' : 'отпуска'} сброшены.`,
+            'info'
+        );
+        return true;
+    }
+
+    // 3. Архивирование
+    archiveExpiredPeriod(mode) {
+        const budget = this.data[mode].budget;
+        const expenses = this.data[mode].expenses;
+
+        const archive = {
+            mode: mode,
+            budget: { ...budget },
+            expenses: [...expenses],
+            archivedAt: new Date().toISOString(),
+            periodLabel: `${budget.startDate} - ${budget.endDate}`
+        };
+
+        const archives = JSON.parse(localStorage.getItem('budgetArchives') || '[]');
+        archives.push(archive);
+
+        const recentArchives = archives.slice(-12);
+        localStorage.setItem('budgetArchives', JSON.stringify(recentArchives));
+
+        console.log('Period archived:', archive.periodLabel);
+    }
+
+    // 4. Проверка всех бюджетов
+    checkAllBudgetPeriods() {
+        let anyReset = false;
+        ['main', 'vacation'].forEach(mode => {
+            if (this.autoResetIfExpired(mode)) anyReset = true;
+        });
+        return anyReset;
+    }
+
+    // 5. init() с проверкой
+    init() {
+        this.loadFromLocalStorage();
+        this.loadSettings();
+
+        this.checkAllBudgetPeriods(); // 🔥 проверка при запуске
+
+        this.setDefaultDates();
+        this.populateCategories();
+        this.updateAllDisplays();
+        this.startAutoBackup();
+        this.requestNotificationPermission();
+        this.updateExchangeRates();
+    }
+
+    // 6. updateDisplay() с проверкой
+    updateDisplay(mode) {
+        this.autoResetIfExpired(mode); // 🔥 проверка перед обновлением
+
+        this.updateSummary(mode);
+        this.updateExpenseList(mode);
+        this.updateProgress(mode);
+    }
+
+    // 7. Просмотр архива
+    viewArchives() {
+        const archives = JSON.parse(localStorage.getItem('budgetArchives') || '[]');
+        if (archives.length === 0) {
+            this.showAlert('Нет архивных данных', 'info');
+            return;
+        }
+
+        archives.reverse().forEach((archive, index) => {
+            console.log(`${archive.mode === 'main' ? 'Основной' : 'Отпуск'}: ${archive.periodLabel}`, archive);
+        });
+
+        this.showAlert('Архивы сохранены. Смотри консоль.', 'info');
+    }
+
+    // 8. Экспорт архива
+    exportArchive(index) {
+        const archives = JSON.parse(localStorage.getItem('budgetArchives') || '[]');
+        const archive = archives[archives.length - 1 - index];
+        if (!archive) {
+            this.showAlert('Архив не найден', 'danger');
+            return;
+        }
+
+        const blob = new Blob([JSON.stringify(archive, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `archive-${archive.periodLabel.replace(/\s/g, '_')}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // 9. Напоминание за N дней
+    checkUpcomingExpiration(mode) {
+        const budget = this.data[mode].budget;
+        if (!budget.endDate) return;
+
+        const endDate = new Date(budget.endDate);
+        const today = new Date();
+        const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+        if (daysRemaining === 3 && daysRemaining > 0) {
+            this.showAlert(
+                `Внимание! Период ${mode === 'main' ? 'основного бюджета' : 'отпуска'} закончится через 3 дня`,
+                'warning'
+            );
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Бюджет скоро закончится', {
+                    body: `Осталось 3 дня до окончания периода`,
+                    icon: 'icons/icon-192x192.png'
+                });
+            }
+        }
+    }
 
             // Set user and load user data from Firestore
             async setUser(user) {
@@ -1855,7 +2000,7 @@
                 // Загружаем настройки и данные
                 this.loadFromLocalStorage();
                 this.loadSettings();
-                
+                    this.checkAllBudgetPeriods(); // <-- Автопроверка при загрузке
                 // Обновляем интерфейс
                 this.setDefaultDates();
                 this.populateCategories();
@@ -2272,6 +2417,9 @@
             }
 
             updateDisplay(mode) {
+            this.autoResetIfExpired(mode);
+                this.autoResetIfExpired(mode);
+                this.data[mode].budget = this.getDefaultData().budget;
                 this.updateSummary(mode);
                 this.updateExpenseList(mode);
                 this.updateProgress(mode);
