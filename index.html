@@ -870,33 +870,20 @@
             </div>
             
             <div id="categoriesList"></div>
-<h2>Управление валютами</h2>
-<div class="input-group">
-    <div>
-        <label for="newCurrencyCode">Код валюты:</label>
-        <input type="text" id="newCurrencyCode" placeholder="USD" maxlength="5" style="text-transform: uppercase;">
-    </div>
-    <div>
-        <label for="newCurrencySymbol">Символ:</label>
-        <input type="text" id="newCurrencySymbol" placeholder="$" maxlength="5">
-    </div>
-    <div>
-        <label for="newCurrencyRate">Курс к USD:</label>
-        <input type="number" id="newCurrencyRate" placeholder="1.0" step="0.0001" min="0">
-    </div>
-    <div>
-        <button onclick="addCustomCurrency()">Добавить валюту</button>
-    </div>
-</div>
 
-<div id="currenciesList"></div>
             <h2>Валюты</h2>
             <div class="input-group">
                 <div>
                     <label for="baseCurrency">Основная валюта:</label>
                     <select id="baseCurrency" onchange="setBaseCurrency()">
-                        <!-- Опции будут добавляться динамически -->
-                    </select>
+    <option value="RUB">₽ Рубль</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
+</select>
                 </div>
                 <div>
                     <button onclick="updateExchangeRates()">🔄 Обновить курсы</button>
@@ -912,19 +899,23 @@
                     <div>
                         <select id="fromCurrency">
                             <option value="RUB">₽ Рубль</option>
-                            <option value="USD">$ Доллар</option>
-                            <option value="EUR">€ Евро</option>
-                            <option value="OMR">OMR Риалы</option>
-                            <option value="AED">AED Дирхамы</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
                         </select>
                     </div>
                     <div>
                         <select id="toCurrency">
-                            <option value="USD">$ Доллар</option>
                             <option value="RUB">₽ Рубль</option>
-                            <option value="EUR">€ Евро</option>
-                            <option value="OMR">OMR Риалы</option>
-                            <option value="AED">AED Дирхамы</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
                         </select>
                     </div>
                     <div>
@@ -957,11 +948,13 @@
                     <div>
                         <label for="budgetCurrency">Валюта:</label>
                         <select id="budgetCurrency">
-                            <option value="RUB">₽ Рубль</option>
-                            <option value="USD">$ Доллар</option>
-                            <option value="EUR">€ Евро</option>
-                            <option value="OMR">OMR Риалы</option>
-                            <option value="AED">AED Дирхамы</option>
+                           <option value="RUB">₽ Рубль</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
                         </select>
                     </div>
                 </div>
@@ -998,10 +991,12 @@
                     <label for="expenseCurrency">Валюта:</label>
                     <select id="expenseCurrency">
                         <option value="RUB">₽ Рубль</option>
-                        <option value="USD">$ Доллар</option>
-                        <option value="EUR">€ Евро</option>
-                        <option value="OMR">OMR Риалы</option>
-                        <option value="AED">AED Дирхамы</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
                     </select>
                 </div>
             </div>
@@ -1056,10 +1051,12 @@
                         <label for="budgetCurrencyVacation">Валюта:</label>
                         <select id="budgetCurrencyVacation">
                             <option value="RUB">₽ Рубль</option>
-                            <option value="USD">$ Доллар</option>
-                            <option value="EUR">€ Евро</option>
-                            <option value="OMR">OMR Риалы</option>
-                            <option value="AED">AED Дирхамы</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
                         </select>
                     </div>
                 </div>
@@ -1095,11 +1092,13 @@
                 <div>
                     <label for="expenseCurrencyVacation">Валюта:</label>
                     <select id="expenseCurrencyVacation">
-                        <option value="RUB">₽ Рубль</option>
-                        <option value="USD">$ Доллар</option>
-                        <option value="EUR">€ Евро</option>
-                        <option value="OMR">OMR Риалы</option>
-                        <option value="AED">AED Дирхамы</option>
+                       <option value="RUB">₽ Рубль</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
                     </select>
                 </div>
             </div>
@@ -1197,10 +1196,12 @@
                     <label for="editCurrency">Валюта:</label>
                     <select id="editCurrency">
                         <option value="RUB">₽ Рубль</option>
-                        <option value="USD">$ Доллар</option>
-                        <option value="EUR">€ Евро</option>
-                        <option value="OMR">OMR Риалы</option>
-                        <option value="AED">AED Дирхамы</option>
+    <option value="USD">$ Доллар</option>
+    <option value="EUR">€ Евро</option>
+    <option value="OMR">OMR Риалы</option>
+    <option value="AED">AED Дирхамы</option>
+    <option value="AZN">₼ Манаты</option>
+    <option value="GEL">₾ Лари</option>
                     </select>
                 </div>
             </div>
@@ -1391,21 +1392,23 @@
                 this.userId = null;
                 this.baseCurrency = 'RUB';
                 this.exchangeRates = {
-                    'RUB': 1,
-                    'USD': 0.011,
-                    'EUR': 0.010,
-                    'OMR': 0.004,
-                    'AED': 0.040,
-                };
-               this.currencySymbols = {
-                    'RUB': '₽',
-                    'USD': '$',
-                    'EUR': '€',
-                    'OMR': 'OMR',
-                    'AED': 'AED'
-                };
-                this.defaultCurrencies = ['RUB', 'USD', 'EUR', 'OMR', 'AED'];
-                this.customCurrencies = []; // Новое свойство
+    'RUB': 1,
+    'USD': 0.011,
+    'EUR': 0.010,
+    'OMR': 0.004,
+    'AED': 0.040,
+    'AZN': 0.019,
+    'GEL': 0.029,
+};
+                this.currencySymbols = {
+    'RUB': '₽',
+    'USD': '$',
+    'EUR': '€',
+    'OMR': 'OMR',
+    'AED': 'AED',
+    'AZN': '₼',
+    'GEL': '₾'
+};
                 this.defaultCategories = {
                     main: [
                         { name: 'Доставка', icon: '🍕' },
@@ -1624,14 +1627,7 @@
                         this.baseCurrency = cloudData.settings.baseCurrency || 'RUB';
                         this.exchangeRates = cloudData.settings.exchangeRates || this.exchangeRates;
                     }
-                    if (cloudData.customCurrencies) {
-                        this.customCurrencies = cloudData.customCurrencies;
-                        // Восстанавливаем курсы и символы
-                        this.customCurrencies.forEach(curr => {
-                            this.exchangeRates[curr.code] = curr.rate;
-                            this.currencySymbols[curr.code] = curr.symbol;
-                        });
-                    }
+                    
                     // Сохраняем локально как резерв
                     this.saveDataLocally();
                     this.setLocalTimestamp(cloudData.lastUpdated || Date.now());
@@ -1658,10 +1654,9 @@
                     console.log('Uploading data to cloud for user:', this.userId);
                     this.showSyncStatus('Сохранение в облако...', 'info');
                     
-                  const userData = {
+                    const userData = {
                         budgetData: this.data,
                         customCategories: this.customCategories,
-                        customCurrencies: this.customCurrencies, // Добавить эту строку
                         settings: {
                             baseCurrency: this.baseCurrency,
                             exchangeRates: this.exchangeRates
@@ -1877,10 +1872,9 @@
             }
 
             init() {
-    // Загружаем настройки и данные
-    this.loadFromLocalStorage();
-    this.loadCustomCurrencies(); // ПЕРЕМЕСТИТЬ СЮДА!
-    this.loadSettings();
+                // Загружаем настройки и данные
+                this.loadFromLocalStorage();
+                this.loadSettings();
                 
                 // Обновляем интерфейс
                 this.setDefaultDates();
@@ -1936,12 +1930,14 @@
                     
                     if (data.rates) {
                         this.exchangeRates = {
-                            'USD': 1,
-                            'RUB': data.rates.RUB || 90,
-                            'EUR': data.rates.EUR || 0.85,
-                            'OMR': data.rates.OMR || 0.385,
-                            'AED': data.rates.AED || 3.67,
-                        };
+    'USD': 1,
+    'RUB': data.rates.RUB || 90,
+    'EUR': data.rates.EUR || 0.85,
+    'OMR': data.rates.OMR || 0.385,
+    'AED': data.rates.AED || 3.67,
+    'AZN': data.rates.AZN || 1.70,
+    'GEL': data.rates.GEL || 2.65,
+};
                         
                         localStorage.setItem('exchangeRates', JSON.stringify(this.exchangeRates));
                         localStorage.setItem('exchangeRatesUpdated', new Date().toISOString());
@@ -1965,17 +1961,8 @@
             }
 
             loadSettings() {
-                this.loadCustomCurrencies(); // Загружаем пользовательские валюты
                 this.baseCurrency = localStorage.getItem('baseCurrency') || 'RUB';
-                
-                // Обновляем селекты валют
-                this.updateCurrencySelects();
-                
-                // Устанавливаем базовую валюту
-                const baseCurrencySelect = document.getElementById('baseCurrency');
-                if (baseCurrencySelect) {
-                    baseCurrencySelect.value = this.baseCurrency;
-                }
+                document.getElementById('baseCurrency').value = this.baseCurrency;
                 
                 const stored = localStorage.getItem('exchangeRates');
                 if (stored) {
@@ -2129,156 +2116,7 @@
                     this.showAlert('Категория удалена', 'success');
                 }
             }
-addCustomCurrency() {
-                const code = document.getElementById('newCurrencyCode').value.trim().toUpperCase();
-                const symbol = document.getElementById('newCurrencySymbol').value.trim();
-                const rate = parseFloat(document.getElementById('newCurrencyRate').value);
-                
-                if (!code || !symbol || !rate || rate <= 0) {
-                    this.showAlert('Заполните все поля корректно', 'danger');
-                    return;
-                }
-                
-                if (code.length > 5) {
-                    this.showAlert('Код валюты слишком длинный (максимум 5 символов)', 'danger');
-                    return;
-                }
-                
-                // Проверяем, не существует ли уже такая валюта
-                if (this.exchangeRates[code]) {
-                    this.showAlert('Валюта с таким кодом уже существует', 'warning');
-                    return;
-                }
-                
-                // Добавляем новую валюту
-                this.exchangeRates[code] = rate;
-                this.currencySymbols[code] = symbol;
-                this.customCurrencies.push({ code, symbol, rate });
-                
-                // Сохраняем
-                localStorage.setItem('customCurrencies', JSON.stringify(this.customCurrencies));
-                this.saveData('main');
-                
-                // Обновляем интерфейс
-                this.updateCurrencySelects();
-                this.updateCurrenciesList();
-                this.updateAllDisplays();
-                
-                this.showAlert(`Валюта ${code} добавлена!`, 'success');
-                
-                // Очищаем поля
-                document.getElementById('newCurrencyCode').value = '';
-                document.getElementById('newCurrencySymbol').value = '';
-                document.getElementById('newCurrencyRate').value = '';
-            }
 
-            deleteCustomCurrency(code) {
-                if (confirm(`Удалить валюту ${code}?`)) {
-                    // Проверяем, не используется ли валюта
-                    const isUsed = ['main', 'vacation'].some(mode => {
-                        return this.data[mode].budget.currency === code ||
-                               this.data[mode].expenses.some(e => e.currency === code);
-                    });
-                    
-                    if (isUsed) {
-                        this.showAlert('Невозможно удалить валюту, которая используется в бюджете или тратах', 'danger');
-                        return;
-                    }
-                    
-                    // Удаляем валюту
-                    delete this.exchangeRates[code];
-                    delete this.currencySymbols[code];
-                    this.customCurrencies = this.customCurrencies.filter(c => c.code !== code);
-                    
-                    // Сохраняем
-                    localStorage.setItem('customCurrencies', JSON.stringify(this.customCurrencies));
-                    this.saveData('main');
-                    
-                    // Обновляем интерфейс
-                    this.updateCurrencySelects();
-                    this.updateCurrenciesList();
-                    
-                    this.showAlert(`Валюта ${code} удалена`, 'success');
-                }
-            }
-
-            updateCurrenciesList() {
-                const listEl = document.getElementById('currenciesList');
-                if (!listEl) return;
-                
-                let html = '<h3>Пользовательские валюты</h3>';
-                
-                if (this.customCurrencies.length === 0) {
-                    html += '<p style="color: #666; text-align: center;">Нет добавленных валют</p>';
-                } else {
-                    this.customCurrencies.forEach(curr => {
-                        html += `
-                            <div class="category-item">
-                                <span>${curr.symbol} ${curr.code} (курс: ${curr.rate} USD)</span>
-                                <button class="danger small" onclick="window.calculator.deleteCustomCurrency('${curr.code}')">
-                                    Удалить
-                                </button>
-                            </div>
-                        `;
-                    });
-                }
-                
-                listEl.innerHTML = html;
-            }
-
-            updateCurrencySelects() {
-                // Получаем все валюты
-                const allCurrencies = [...this.defaultCurrencies, ...this.customCurrencies.map(c => c.code)];
-                
-                // Обновляем все селекты валют
-                const selects = [
-                    'baseCurrency',
-                    'budgetCurrency',
-                    'budgetCurrencyVacation',
-                    'expenseCurrency',
-                    'expenseCurrencyVacation',
-                    'editCurrency',
-                    'fromCurrency',
-                    'toCurrency'
-                ];
-                
-                selects.forEach(selectId => {
-                    const select = document.getElementById(selectId);
-                    if (!select) return;
-                    
-                    const currentValue = select.value;
-                    select.innerHTML = '';
-                    
-                    allCurrencies.forEach(code => {
-                        const option = document.createElement('option');
-                        option.value = code;
-                        option.textContent = `${this.currencySymbols[code]} ${code}`;
-                        select.appendChild(option);
-                    });
-                    
-                    // Восстанавливаем выбранное значение
-                    if (currentValue && allCurrencies.includes(currentValue)) {
-                        select.value = currentValue;
-                    }
-                });
-            }
-
-            loadCustomCurrencies() {
-                const stored = localStorage.getItem('customCurrencies');
-                if (stored) {
-                    try {
-                        this.customCurrencies = JSON.parse(stored);
-                        // Восстанавливаем курсы и символы
-                        this.customCurrencies.forEach(curr => {
-                            this.exchangeRates[curr.code] = curr.rate;
-                            this.currencySymbols[curr.code] = curr.symbol;
-                        });
-                    } catch (error) {
-                        console.error('Error loading custom currencies:', error);
-                        this.customCurrencies = [];
-                    }
-                }
-            }
             setBaseCurrency() {
                 this.baseCurrency = document.getElementById('baseCurrency').value;
                 localStorage.setItem('baseCurrency', this.baseCurrency);
@@ -2462,14 +2300,13 @@ addCustomCurrency() {
             }
 
             updateAllDisplays() {
-    this.updateDisplay('main');
-    this.updateDisplay('vacation');
-    this.updateCategoriesList();
-    this.updateCurrenciesList(); // ДОБАВИТЬ ЭТУ СТРОКУ
-    if (this.currentTab === 'analytics') {
-        this.updateAnalytics();
-    }
-}
+                this.updateDisplay('main');
+                this.updateDisplay('vacation');
+                this.updateCategoriesList();
+                if (this.currentTab === 'analytics') {
+                    this.updateAnalytics();
+                }
+            }
 
             updateSummary(mode) {
                 const data = this.data[mode];
@@ -3068,11 +2905,10 @@ addCustomCurrency() {
                 window.calculator.currentTab = tab;
                 
                 if (tab === 'analytics') {
-    window.calculator.updateAnalytics();
-} else if (tab === 'settings') {
-    window.calculator.updateCategoriesList();
-    window.calculator.updateCurrenciesList(); // ДОБАВИТЬ ЭТУ СТРОКУ
-}
+                    window.calculator.updateAnalytics();
+                } else if (tab === 'settings') {
+                    window.calculator.updateCategoriesList();
+                }
             }
         }
 
@@ -3158,9 +2994,7 @@ addCustomCurrency() {
         function updateExchangeRates() {
             if (window.calculator) window.calculator.updateExchangeRates();
         }
-function addCustomCurrency() {
-            if (window.calculator) window.calculator.addCustomCurrency();
-        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('editModal');
